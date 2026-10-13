@@ -11,6 +11,8 @@ use gtk::prelude::*;
 use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 
+type OnCollapse = Box<dyn Fn(bool)>;
+
 struct TabEntry {
     name: String,
     button: gtk::ToggleButton,
@@ -34,7 +36,7 @@ pub struct Ribbon {
     peeking: Cell<bool>,
     chevron: gtk::Button,
     width: Cell<i32>,
-    on_collapse: RefCell<Option<Box<dyn Fn(bool)>>>,
+    on_collapse: RefCell<Option<OnCollapse>>,
 }
 
 /// One tab's panel: groups side by side.
