@@ -7,3 +7,6 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+gtk = { version = "0.11", package = "gtk4", features = ["v4_18"] }
+nixe-core = { path = "../nixe-core" }
+nixe-theme = { path = "../nixe-theme" }
