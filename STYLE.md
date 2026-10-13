@@ -197,7 +197,6 @@ dropdown (disabled while following), current-color swatches, Glow, and Reduce mo
 | Element | Size | Weight | Color | Extra |
 | --- | --- | --- | --- | --- |
 | Sidebar head app name | 1em | 600 | `dim_text` | |
-| Command bar label | 0.86em | 400 | `text` | beside its icon |
 | Inspector segment | 0.92em | 500 | `dim_text`, `text` when open | contextual segments in `accent` |
 | Inspector heading | 0.72em | 600 | `dim_text` | UPPERCASE, letter-spacing 0.1em |
 | Group heading | 0.9em | 600 | `dim_text` | UPPERCASE, letter-spacing 2 px |
@@ -416,14 +415,18 @@ same way (Fonts' `show_shortcuts` is the template):
 hairline border. Gridlines are `border` at 0.3–0.45 alpha, axis labels 11 px
 `dim_text`, the line 2.5 px `accent` with a 0.14-alpha fill below it.
 
-**Command bar** (`nixe_ui::commandbar`): one 44 px row with a hairline below, for what
-you do to a document: the File menu, undo and redo (`lead`), then the things you add
-as 30 px tools, an icon and a 0.86em label (`tool`, with a `priority`), and the bar's
-main action as an accent pill (`primary`, at most one). Groups are split by short
-18 px dividers. The file's name sits in the middle, its extension dimmed and an accent
-dot while unsaved; clicking it is Save as. The bar never wraps: when it runs out of
-room the tools drop their labels, then the least important fold into the `⋯` menu,
-which also holds the tools added with `more`.
+**Command bar** (`nixe_ui::commandbar`): one 44 px row of icons with a hairline below,
+holding what each editor uses most: the File menu, undo and redo (`lead`), then groups
+(`group(priority)`) of 30 px icon tools, `dim_text` at rest, `text` on hover, `accent`
+on `nav_active` when on. Groups are split by 18 px dividers with 6 px either side. A
+control that also lives in the Inspector is mirrored (`toggle_of`, `button_of`): the
+bar's copy shows its state and clicks it, so the two never disagree. The bar's main
+action is an accent square (`primary`, at most one); a choice of ways to do it (Play)
+is an accent-outlined split button (`.commandbar-split`). The file's name sits in the
+middle, its extension dimmed and an accent dot while unsaved; clicking it is Save as.
+The bar never wraps: when it runs out of room whole groups fold into the `⋯` menu,
+least important first, where each tool shows its name and keys; tools added with
+`more` always live there.
 
 **Inspector** (`nixe_ui::inspector`): a 288 px panel at the document's right, in
 `theme_surface`, with the formatting for what's selected. A segmented switch at its top
@@ -432,8 +435,9 @@ Object) appear in `accent` and are picked while something matching is selected. 
 segment is a column of sections: an UPPERCASE 0.72em heading, then controls that fill
 the row (`add`, `row`, `field` with an 84 px label column, `segmented` for joined
 buttons like B I U). Nothing sits stranded in empty space. It docks beside the
-document when the document leaves it room, and floats over it otherwise; Esc closes a
-floating one. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> (or <kbd>Ctrl</kbd>+<kbd>F1</kbd>)
+document when the document leaves it room, and floats over it otherwise (Office first
+narrows the sidebar to icons to make room); Esc closes a floating one. Colour buttons in
+it carry a label beside their swatch. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> (or <kbd>Ctrl</kbd>+<kbd>F1</kbd>)
 shows and hides it, per editor (`inspector` in the settings: open by default, closed in
 Sheets). The palette opens it at the segment of the control it presses.
 

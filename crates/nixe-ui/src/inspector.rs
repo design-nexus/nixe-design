@@ -42,6 +42,7 @@ pub struct Inspector {
     dock: gtk::Box,
     float_slot: RefCell<Option<gtk::Overlay>>,
     on_open: RefCell<Vec<OnOpen>>,
+    on_floating: RefCell<Vec<OnOpen>>,
     syncing: Cell<bool>,
 }
 
@@ -107,6 +108,7 @@ impl Inspector {
             dock,
             float_slot: RefCell::new(None),
             on_open: RefCell::new(Vec::new()),
+            on_floating: RefCell::new(Vec::new()),
             syncing: Cell::new(false),
         });
         let me = Rc::downgrade(&insp);
@@ -144,24 +146,32 @@ impl Inspector {
         self.set_floating(true);
         let me = Rc::downgrade(self);
         let content = content.clone().upcast::<gtk::Widget>();
+        // The first measure is always reported: it may float from the start.
+        let first = Cell::new(true);
         overlay.add_tick_callback(move |o, _| {
             let Some(i) = me.upgrade() else { return glib::ControlFlow::Break };
             let width = o.width();
             if width > 0 {
                 let least = content.measure(gtk::Orientation::Horizontal, -1).0;
-                i.set_floating(width - least < WIDTH);
+                if i.set_floating(width - least < WIDTH) | first.replace(false) {
+                    let hooks = i.on_floating.borrow().clone();
+                    for f in hooks {
+                        f(i.floating.get());
+                    }
+                }
             }
             glib::ControlFlow::Continue
         });
         overlay
     }
 
-    fn set_floating(&self, floating: bool) {
+    /// Returns whether it changed.
+    fn set_floating(&self, floating: bool) -> bool {
         if self.floating.get() == floating {
-            return;
+            return false;
         }
         self.floating.set(floating);
-        let Some(overlay) = self.float_slot.borrow().clone() else { return };
+        let Some(overlay) = self.float_slot.borrow().clone() else { return true };
         if floating {
             self.dock.remove(&self.root);
             // As tall as what it holds, up to the document's height.
@@ -175,6 +185,13 @@ impl Inspector {
             self.root.set_valign(gtk::Align::Fill);
             self.dock.append(&self.root);
         }
+        true
+    }
+
+    /// Called when it starts or stops floating as the space beside the
+    /// document changes, so the window can make room (a narrower sidebar).
+    pub fn connect_floating(&self, f: impl Fn(bool) + 'static) {
+        self.on_floating.borrow_mut().push(Rc::new(f));
     }
 
     pub fn is_floating(&self) -> bool {
