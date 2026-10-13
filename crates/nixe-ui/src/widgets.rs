@@ -453,3 +453,16 @@ pub fn usage_bar() -> gtk::LevelBar {
 pub fn vbox(spacing: i32) -> gtk::Box {
     gtk::Box::new(gtk::Orientation::Vertical, spacing)
 }
+
+/// "Open on": every Nixe app opens on its start page, or on the page shown
+/// last. Shared by the whole suite, like the theme.
+pub fn start_row() -> gtk::Box {
+    let current = if nixe_theme::reopens_last_page() { "last" } else { "home" };
+    segmented_row(
+        "Open on",
+        "Where every Nixe app opens.",
+        vec![("home".into(), "Its start page".into()), ("last".into(), "The last page used".into())],
+        current,
+        |v| nixe_theme::update_suite(|s| s.start = v),
+    )
+}

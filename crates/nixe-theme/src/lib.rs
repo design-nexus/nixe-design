@@ -263,12 +263,32 @@ pub struct Suite {
     pub density: String,
     /// Text size as a multiple of the normal size, 0.9 to 1.25.
     pub text_scale: f64,
+    /// Where apps open: `home` (their start page) or `last` (the page shown last).
+    pub start: String,
 }
 
 impl Default for Suite {
     fn default() -> Self {
-        Self { mode: ThemeMode::Omarchy, theme: "tokyo-night".into(), density: "comfortable".into(), text_scale: 1.0 }
+        Self {
+            mode: ThemeMode::Omarchy,
+            theme: "tokyo-night".into(),
+            density: "comfortable".into(),
+            text_scale: 1.0,
+            start: "home".into(),
+        }
     }
+}
+
+/// The page an app opens on: `home` (its start page), or `last` (the one it
+/// remembers) when the suite is set to reopen the last page.
+pub fn start_page(home: &str, last: &str) -> String {
+    let reopen = read_suite().is_some_and(|s| s.start == "last");
+    if reopen && !last.is_empty() { last.to_string() } else { home.to_string() }
+}
+
+/// Whether apps reopen the last page instead of their start page.
+pub fn reopens_last_page() -> bool {
+    read_suite().is_some_and(|s| s.start == "last")
 }
 
 /// The suite's density and text size as CSS for one app, loaded after its own
