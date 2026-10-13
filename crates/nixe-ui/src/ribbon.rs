@@ -152,7 +152,14 @@ impl Ribbon {
         }
         let page = widgets::hbox(0);
         page.add_css_class("ribbon-page");
-        self.panel.add_named(&page, Some(name));
+        // The panel asks for no width of its own, so the window can narrow
+        // and the groups fold instead.
+        let holder = gtk::ScrolledWindow::builder()
+            .hscrollbar_policy(gtk::PolicyType::External)
+            .vscrollbar_policy(gtk::PolicyType::Never)
+            .child(&page)
+            .build();
+        self.panel.add_named(&holder, Some(name));
         let n = name.to_string();
         let me = Rc::downgrade(self);
         button.connect_clicked(move |b| {
@@ -274,8 +281,9 @@ impl Ribbon {
                 g.natural.set(g.root.measure(gtk::Orientation::Horizontal, -1).1);
             }
         }
-        let folded_width = |g: &Group| g.fold.measure(gtk::Orientation::Horizontal, -1).1.max(48) + 12;
-        let available = width - 24;
+        // A hidden fold button measures nothing, so allow for its label.
+        let folded_width = |g: &Group| g.fold.measure(gtk::Orientation::Horizontal, -1).1.max(64) + 18;
+        let available = width - 32;
         groups.sort_by_key(|g| g.priority);
         let mut total: i32 = groups.iter().map(|g| g.natural.get()).sum();
         let mut fold = vec![false; groups.len()];
