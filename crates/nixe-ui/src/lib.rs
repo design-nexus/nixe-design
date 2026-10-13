@@ -2,6 +2,7 @@
 
 pub mod chrome;
 pub mod clamp;
+pub mod keys;
 pub mod ribbon;
 pub mod settings_card;
 pub mod widgets;

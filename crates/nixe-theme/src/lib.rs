@@ -45,6 +45,8 @@ pub struct Style {
     pub extra_colors: Option<fn(&Palette) -> String>,
     /// Reads the app's current theme preferences.
     pub prefs: fn() -> ThemePrefs,
+    /// Stores a theme chosen in another Nixe app in this app's preferences.
+    pub set_theme: Option<fn(ThemeMode, String)>,
 }
 
 #[derive(Debug, Clone, Deserialize, PartialEq)]
@@ -227,11 +229,13 @@ struct CustomFile {
     palette: Palette,
 }
 
-/// User themes in `~/.config/<app>/themes/*.toml`.
+/// User themes in `~/.config/nixe/themes/*.toml` (for every app) and
+/// `~/.config/<app>/themes/*.toml` (this one; same name wins).
 pub fn custom() -> Vec<Theme> {
-    let Ok(entries) = std::fs::read_dir(paths::custom_themes_dir()) else { return vec![] };
-    let mut themes: Vec<Theme> = entries
-        .flatten()
+    let mut themes: Vec<Theme> = [paths::suite_dir().join("themes"), paths::custom_themes_dir()]
+        .iter()
+        .filter_map(|dir| std::fs::read_dir(dir).ok())
+        .flat_map(|entries| entries.flatten())
         .filter(|e| e.path().extension().is_some_and(|x| x == "toml"))
         .filter_map(|e| {
             let text = std::fs::read_to_string(e.path()).ok()?;
@@ -240,8 +244,49 @@ pub fn custom() -> Vec<Theme> {
             Some(Theme { id, name: file.name, palette: file.palette })
         })
         .collect();
+    // The app's own copy of a theme comes later in the list and wins.
+    let mut seen = std::collections::HashSet::new();
+    themes.reverse();
+    themes.retain(|t| seen.insert(t.id.clone()));
     themes.sort_by(|a, b| a.name.cmp(&b.name));
     themes
+}
+
+/// Settings every Nixe app shares (`~/.config/nixe/theme.toml`): the theme,
+/// and how dense and large the interface is.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct Suite {
+    pub mode: ThemeMode,
+    pub theme: String,
+    /// `comfortable` or `compact`.
+    pub density: String,
+    /// Text size as a multiple of the normal size, 0.9 to 1.25.
+    pub text_scale: f64,
+}
+
+impl Default for Suite {
+    fn default() -> Self {
+        Self { mode: ThemeMode::Omarchy, theme: "tokyo-night".into(), density: "comfortable".into(), text_scale: 1.0 }
+    }
+}
+
+pub fn suite_file() -> std::path::PathBuf {
+    paths::suite_dir().join("theme.toml")
+}
+
+/// The shared settings, if any app has written them yet.
+pub fn read_suite() -> Option<Suite> {
+    toml::from_str(&std::fs::read_to_string(suite_file()).ok()?).ok()
+}
+
+/// Change the shared settings; every open Nixe app follows within a second.
+pub fn update_suite(change: impl FnOnce(&mut Suite)) {
+    let mut suite = read_suite().unwrap_or_default();
+    change(&mut suite);
+    if let Ok(text) = toml::to_string_pretty(&suite) {
+        let _ = nixe_core::cmd::atomic_write(&suite_file(), text);
+    }
 }
 
 pub fn all() -> Vec<Theme> {
@@ -389,6 +434,8 @@ thread_local! {
     static ACTIVE: RefCell<Option<Palette>> = const { RefCell::new(None) };
     static LISTENERS: RefCell<Vec<(glib::WeakRef<gtk::Widget>, Listener)>> = const { RefCell::new(Vec::new()) };
     static GLOBAL: RefCell<Vec<Listener>> = const { RefCell::new(Vec::new()) };
+    /// The theme this app and the suite file last agreed on.
+    static SYNCED: RefCell<Option<(ThemeMode, String)>> = const { RefCell::new(None) };
 }
 
 fn config_prefs() -> ThemePrefs {
@@ -417,6 +464,28 @@ pub fn on_change(f: impl Fn() + 'static) {
 
 /// Install the app's stylesheet and the current palette on the default display.
 pub fn install(style: Style) {
+    // Start with the suite's theme if another app has chosen one.
+    let mine = {
+        let p = (style.prefs)();
+        (p.mode, p.theme)
+    };
+    let synced = match read_suite() {
+        Some(suite) if (suite.mode.clone(), suite.theme.clone()) != mine => {
+            if let Some(set) = style.set_theme {
+                set(suite.mode.clone(), suite.theme.clone());
+            }
+            (suite.mode, suite.theme)
+        }
+        Some(_) => mine,
+        None => {
+            update_suite(|s| {
+                s.mode = mine.0.clone();
+                s.theme = mine.1.clone();
+            });
+            mine
+        }
+    };
+    SYNCED.with(|s| *s.borrow_mut() = Some(synced));
     STYLE.with(|s| *s.borrow_mut() = Some(style));
     let display = gdk::Display::default().expect("no display");
     let provider = gtk::CssProvider::new();
@@ -430,6 +499,15 @@ pub fn install(style: Style) {
 /// one sheet so every `@theme_*` reference resolves against the new colours.
 pub fn apply() {
     let prefs = config_prefs();
+    // A theme chosen in this app goes to every app.
+    let mine = (prefs.mode.clone(), prefs.theme.clone());
+    if SYNCED.with(|s| s.borrow().as_ref() != Some(&mine)) {
+        update_suite(|s| {
+            s.mode = mine.0.clone();
+            s.theme = mine.1.clone();
+        });
+        SYNCED.with(|s| *s.borrow_mut() = Some(mine));
+    }
     let palette = current_palette();
     ACTIVE.with(|a| *a.borrow_mut() = Some(palette.clone()));
     let mut css = palette_css(&palette);
@@ -479,11 +557,28 @@ fn stamp() -> Option<(SystemTime, String)> {
 /// most robust way to notice every variant of that.
 fn watch_omarchy() {
     let last = RefCell::new(stamp());
+    let suite_stamp = || std::fs::metadata(suite_file()).and_then(|m| m.modified()).ok();
+    let last_suite = RefCell::new(suite_stamp());
     glib::timeout_add_seconds_local(1, move || {
         let now = stamp();
         if now != *last.borrow() {
             *last.borrow_mut() = now;
             if config_prefs().mode == ThemeMode::Omarchy {
+                apply();
+            }
+        }
+        // Another Nixe app changed the shared theme.
+        let now = suite_stamp();
+        if now != *last_suite.borrow() {
+            *last_suite.borrow_mut() = now;
+            if let Some(suite) = read_suite() {
+                let theirs = (suite.mode.clone(), suite.theme.clone());
+                if SYNCED.with(|s| s.borrow().as_ref() != Some(&theirs)) {
+                    if let Some(set) = STYLE.with(|s| s.borrow().as_ref().and_then(|s| s.set_theme)) {
+                        set(suite.mode, suite.theme);
+                    }
+                    SYNCED.with(|s| *s.borrow_mut() = Some(theirs));
+                }
                 apply();
             }
         }
