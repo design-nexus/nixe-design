@@ -984,3 +984,108 @@ window.@APP@ entry.sidebar-search {
   min-height: 30px;
   margin: 0 4px 8px;
 }
+
+/* ---------- Ribbon ---------- */
+
+.ribbon {
+  border-bottom: 1px solid @hairline;
+}
+
+.ribbon-strip {
+  min-height: 36px;
+  padding: 0 8px;
+}
+
+window.@APP@ button.ribbon-tab {
+  min-height: 26px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: @theme_dim_text;
+  font-weight: 500;
+}
+
+window.@APP@ button.ribbon-tab:hover {
+  background: @row_hover;
+  color: @theme_text;
+}
+
+window.@APP@ button.ribbon-tab:checked {
+  background: @nav_active;
+  color: @theme_text;
+}
+
+window.@APP@ button.ribbon-tab.contextual {
+  color: @theme_accent;
+}
+
+.ribbon-panel {
+  min-height: 80px;
+  border-top: 1px solid @divider;
+}
+
+.ribbon-page {
+  padding: 4px 6px 2px;
+}
+
+.ribbon-group {
+  padding: 0 8px;
+  border-right: 1px solid @divider;
+}
+
+.ribbon-group-content {
+  min-height: 62px;
+}
+
+.ribbon-group-label,
+.ribbon-fold-label,
+.ribbon-large-label {
+  font-size: 0.74em;
+  color: @theme_dim_text;
+}
+
+.ribbon-group-label {
+  margin-top: 1px;
+}
+
+window.@APP@ button.ribbon-large,
+window.@APP@ menubutton.ribbon-fold > button {
+  min-width: 52px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: @theme_text;
+}
+
+window.@APP@ button.ribbon-large:hover,
+window.@APP@ menubutton.ribbon-fold > button:hover {
+  background: @row_hover;
+}
+
+window.@APP@ menubutton.ribbon-fold > button {
+  min-height: 62px;
+}
+
+popover.ribbon-popover > contents {
+  padding: 8px;
+}
+
+window.@APP@ menubutton.ribbon-file > button {
+  min-height: 26px;
+  padding: 0 12px;
+  margin-right: 6px;
+  border: none;
+  border-radius: 6px;
+  background: @nav_active;
+  box-shadow: none;
+  color: @theme_text;
+  font-weight: 600;
+}
+
+window.@APP@ menubutton.ribbon-file > button:hover {
+  background: mix(@nav_active, @theme_accent, 0.12);
+}
