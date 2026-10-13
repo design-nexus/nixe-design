@@ -1089,3 +1089,14 @@ window.@APP@ menubutton.ribbon-file > button {
 window.@APP@ menubutton.ribbon-file > button:hover {
   background: mix(@nav_active, @theme_accent, 0.12);
 }
+
+/* ---------- Palette ---------- */
+
+.palette-list {
+  background: transparent;
+}
+
+.palette-row {
+  min-height: 34px;
+  padding: 0 8px;
+}
