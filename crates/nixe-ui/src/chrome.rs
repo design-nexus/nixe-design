@@ -36,6 +36,13 @@ pub fn sidebar_head(app_name: &str, search_tooltip: Option<&str>) -> SidebarHead
 pub fn set_head_compact(head: &gtk::Box, compact: bool) {
     head.set_orientation(if compact { gtk::Orientation::Vertical } else { gtk::Orientation::Horizontal });
     head.set_halign(if compact { gtk::Align::Center } else { gtk::Align::Fill });
+    let mut child = head.first_child();
+    while let Some(c) = child {
+        if c.has_css_class("sidebar-app-name") {
+            c.set_visible(!compact);
+        }
+        child = c.next_sibling();
+    }
 }
 
 /// A slim strip over the page that holds `entry`, shown only while the entry is.

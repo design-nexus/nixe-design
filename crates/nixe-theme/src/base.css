@@ -979,3 +979,8 @@ window.@APP@ button.status-action {
   min-width: 26px;
   min-height: 24px;
 }
+
+window.@APP@ entry.sidebar-search {
+  min-height: 30px;
+  margin: 0 4px 8px;
+}
