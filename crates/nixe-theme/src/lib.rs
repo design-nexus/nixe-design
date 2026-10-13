@@ -271,6 +271,31 @@ impl Default for Suite {
     }
 }
 
+/// The suite's density and text size as CSS for one app, loaded after its own
+/// stylesheet so they apply on top.
+pub fn suite_css(window_class: &str, suite: &Suite) -> String {
+    let mut css = String::new();
+    let scale = suite.text_scale.clamp(0.9, 1.25);
+    if (scale - 1.0).abs() > 0.001 {
+        css.push_str(&format!("window.{window_class} {{ font-size: {scale:.3}em; }}\n"));
+    }
+    if suite.density == "compact" {
+        css.push_str(&COMPACT.replace("@APP@", window_class));
+    }
+    css
+}
+
+/// Compact density: the same layout, tighter.
+const COMPACT: &str = "
+window.@APP@ .settings-navigation button.nav-item { min-height: 34px; }
+window.@APP@ .status-bar { min-height: 28px; }
+window.@APP@ .toolbar, window.@APP@ .list-toolbar { min-height: 38px; }
+window.@APP@ .settings-option { min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
+window.@APP@ columnview > listview > row { min-height: 28px; }
+window.@APP@ .ribbon-panel { min-height: 70px; }
+window.@APP@ .ribbon-group-content { min-height: 54px; }
+";
+
 pub fn suite_file() -> std::path::PathBuf {
     paths::suite_dir().join("theme.toml")
 }
@@ -518,6 +543,7 @@ pub fn apply() {
             }
             css.push_str(&base_css(style.window_class, style.base_skip));
             css.push_str(style.css);
+            css.push_str(&suite_css(style.window_class, &read_suite().unwrap_or_default()));
             if !prefs.glow {
                 css.push('\n');
                 css.push_str(style.no_glow_css);
