@@ -300,8 +300,13 @@ that says what the option *does* for the user, not what it's called internally.
   <kbd>?</kbd> the shortcuts, <kbd>Ctrl</kbd>+<kbd>F</kbd> search,
   <kbd>Ctrl</kbd>+<kbd>B</kbd> the sidebar, <kbd>Esc</kbd> clears or closes,
   <kbd>Ctrl</kbd>+<kbd>Q</kbd> quits, <kbd>Ctrl</kbd>+<kbd>W</kbd> closes the document
-  or tab in document apps and the window elsewhere. `nixe_ui::keys` adds any an app
+  or tab in document apps and the window elsewhere, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd>
+  the palette (`nixe_ui::palette`: every page and named button in the window, so give
+  buttons tooltips with their keys, "Find (Ctrl+F)"). `nixe_ui::keys` adds any an app
   doesn't handle itself.
+- **Deleting:** prefer doing it at once with an Undo toast (hide the item, delete when
+  the toast has gone) to asking first. Keep a confirmation only for what can't come
+  back, like deleting files from disk.
 
 ---
 
