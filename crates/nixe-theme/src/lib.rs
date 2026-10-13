@@ -32,7 +32,12 @@ pub struct ThemePrefs {
 
 /// What an app supplies to [`install`].
 pub struct Style {
-    /// The app's stylesheet.
+    /// The CSS class of the app's main window, which scopes the shared rules.
+    pub window_class: &'static str,
+    /// Shared rules the app styles its own way, by selector (as written in
+    /// `base.css`, with `@APP@`), left out of its sheet.
+    pub base_skip: &'static [&'static str],
+    /// The app's stylesheet, loaded after the shared one.
     pub css: &'static str,
     /// Extra rules loaded when the Glow preference is off.
     pub no_glow_css: &'static str,
@@ -316,6 +321,66 @@ pub fn palette_css(p: &Palette) -> String {
     )
 }
 
+/// The stylesheet every app shares.
+pub const BASE_CSS: &str = include_str!("base.css");
+
+/// The shared stylesheet for one app: scoped to its window class, without the
+/// rules it styles its own way.
+pub fn base_css(window_class: &str, skip: &[&str]) -> String {
+    let mut out = String::with_capacity(BASE_CSS.len());
+    for block in blocks(BASE_CSS) {
+        let selector = block.split('{').next().unwrap_or_default();
+        let selector = strip_comments(selector).split_whitespace().collect::<Vec<_>>().join(" ");
+        if block.contains('{') && skip.contains(&selector.as_str()) {
+            continue;
+        }
+        out.push_str(block);
+    }
+    out.replace("@APP@", window_class)
+}
+
+/// Top-level statements and rule blocks, each with the comments before it.
+fn blocks(css: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let (mut depth, mut start, mut i) = (0usize, 0usize, 0usize);
+    let bytes = css.as_bytes();
+    while i < bytes.len() {
+        if css[i..].starts_with("/*") {
+            i = css[i..].find("*/").map_or(bytes.len(), |j| i + j + 2);
+            continue;
+        }
+        match bytes[i] {
+            b'{' => depth += 1,
+            b'}' => {
+                depth = depth.saturating_sub(1);
+                if depth == 0 {
+                    out.push(&css[start..=i]);
+                    start = i + 1;
+                }
+            }
+            b';' if depth == 0 => {
+                out.push(&css[start..=i]);
+                start = i + 1;
+            }
+            _ => {}
+        }
+        i += 1;
+    }
+    out.push(&css[start..]);
+    out
+}
+
+fn strip_comments(s: &str) -> String {
+    let mut out = String::new();
+    let mut rest = s;
+    while let Some(i) = rest.find("/*") {
+        out.push_str(&rest[..i]);
+        rest = rest[i..].find("*/").map_or("", |j| &rest[i + j + 2..]);
+    }
+    out.push_str(rest);
+    out
+}
+
 type Listener = Box<dyn Fn()>;
 
 thread_local! {
@@ -373,6 +438,7 @@ pub fn apply() {
             if let Some(extra) = style.extra_colors {
                 css.push_str(&extra(&palette));
             }
+            css.push_str(&base_css(style.window_class, style.base_skip));
             css.push_str(style.css);
             if !prefs.glow {
                 css.push('\n');
@@ -486,6 +552,16 @@ mod tests {
     #[test]
     fn rejects_incomplete_colors() {
         assert!(from_omarchy_colors("accent = \"#fff\"").is_none());
+    }
+
+    #[test]
+    fn base_css_scopes_and_skips() {
+        let all = base_css("music-window", &[]);
+        assert!(all.contains("window.music-window {"));
+        assert!(!all.contains("@APP@"));
+        let without = base_css("music-window", &[".toast"]);
+        assert!(all.contains(".toast {") && !without.contains("\n.toast {"));
+        assert!(without.contains(".toast-"), "only the exact selector is dropped");
     }
 
     #[test]
