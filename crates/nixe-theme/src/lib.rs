@@ -323,6 +323,7 @@ thread_local! {
     static PROVIDER: RefCell<Option<gtk::CssProvider>> = const { RefCell::new(None) };
     static ACTIVE: RefCell<Option<Palette>> = const { RefCell::new(None) };
     static LISTENERS: RefCell<Vec<(glib::WeakRef<gtk::Widget>, Listener)>> = const { RefCell::new(Vec::new()) };
+    static GLOBAL: RefCell<Vec<Listener>> = const { RefCell::new(Vec::new()) };
 }
 
 fn config_prefs() -> ThemePrefs {
@@ -342,6 +343,11 @@ pub fn palette() -> Palette {
 /// Call `f` whenever the palette changes, for as long as `owner` lives.
 pub fn subscribe(owner: &impl IsA<gtk::Widget>, f: impl Fn() + 'static) {
     LISTENERS.with(|l| l.borrow_mut().push((owner.upcast_ref::<gtk::Widget>().downgrade(), Box::new(f))));
+}
+
+/// Call `f` after every restyle for the rest of the run.
+pub fn on_change(f: impl Fn() + 'static) {
+    GLOBAL.with(|g| g.borrow_mut().push(Box::new(f)));
 }
 
 /// Install the app's stylesheet and the current palette on the default display.
@@ -386,6 +392,11 @@ pub fn apply() {
     LISTENERS.with(|l| {
         l.borrow_mut().retain(|(w, _)| w.upgrade().is_some());
         for (_, f) in l.borrow().iter() {
+            f();
+        }
+    });
+    GLOBAL.with(|g| {
+        for f in g.borrow().iter() {
             f();
         }
     });
