@@ -945,3 +945,37 @@ window.@APP@ button.toast-action {
   font-weight: 700;
   color: @theme_accent;
 }
+
+/* ---------- Window chrome without a top bar ---------- */
+
+.sidebar-head {
+  min-height: 34px;
+  margin: 0 0 8px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid @hairline;
+}
+
+.settings-navigation.compact .sidebar-head {
+  margin: 0 0 6px;
+  padding: 0 0 6px;
+}
+
+.sidebar-app-name {
+  margin-left: 6px;
+  font-weight: 600;
+  color: @theme_dim_text;
+}
+
+.search-strip {
+  padding: 6px 12px;
+  border-bottom: 1px solid @hairline;
+}
+
+window.@APP@ .search-strip entry {
+  min-height: 30px;
+}
+
+window.@APP@ button.status-action {
+  min-width: 26px;
+  min-height: 24px;
+}
