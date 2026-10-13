@@ -1,5 +1,5 @@
 //! Ctrl+Shift+P: one box to find anything the window can do. It lists the
-//! sidebar's pages and every button with a name or a tooltip (the ribbon's
+//! sidebar's pages and every button with a name or a tooltip (the inspector's
 //! too), and choosing one presses that button, so it always matches the app.
 
 use crate::widgets;
@@ -21,7 +21,7 @@ struct Item {
 }
 
 /// "Find in the file (Ctrl+F)" → ("Find in the file", "Ctrl+F").
-fn split_keys(text: &str) -> (String, String) {
+pub(crate) fn split_keys(text: &str) -> (String, String) {
     let text = text.trim();
     if let Some(open) = text.rfind(" (")
         && text.ends_with(')')
@@ -70,7 +70,8 @@ fn reachable(w: &gtk::Widget, root: &gtk::Widget) -> bool {
             return true;
         }
         let in_stack_page = c.parent().is_some_and(|p| p.is::<gtk::Stack>());
-        if !c.is_visible() && !in_stack_page {
+        let hidden_page = in_stack_page && c.has_css_class("contextual-page");
+        if !c.is_visible() && (!in_stack_page || hidden_page) && !c.has_css_class("commandbar-menu") {
             return false;
         }
         if !c.is_sensitive() {
@@ -83,7 +84,8 @@ fn reachable(w: &gtk::Widget, root: &gtk::Widget) -> bool {
 
 fn collect(w: &gtk::Widget, root: &gtk::Widget, out: &mut Vec<Item>) {
     // A dropdown's insides aren't commands of their own.
-    if w.is::<gtk::DropDown>() || w.is::<gtk::SpinButton>() || w.is::<gtk::Popover>() {
+    // (The command bar's ⋯ menu is the exception: its tools count.)
+    if w.is::<gtk::DropDown>() || w.is::<gtk::SpinButton>() || (w.is::<gtk::Popover>() && !w.has_css_class("commandbar-menu")) {
         return;
     }
     let is_button = w.is::<gtk::Button>() || w.is::<gtk::MenuButton>();
@@ -156,6 +158,13 @@ fn row(item: &Item) -> gtk::ListBoxRow {
 }
 
 fn press(w: &gtk::Widget) {
+    crate::inspector::reveal(w);
+    // A menu button folded into the command bar's ⋯ menu opens from there.
+    if w.is::<gtk::MenuButton>()
+        && let Some(menu) = w.ancestor(gtk::Popover::static_type()).and_downcast::<gtk::Popover>()
+    {
+        menu.popup();
+    }
     if let Some(m) = w.downcast_ref::<gtk::MenuButton>() {
         m.popup();
     } else if let Some(b) = w.downcast_ref::<gtk::Button>() {

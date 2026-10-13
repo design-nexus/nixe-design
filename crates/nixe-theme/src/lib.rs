@@ -292,8 +292,8 @@ window.@APP@ .status-bar { min-height: 28px; }
 window.@APP@ .toolbar, window.@APP@ .list-toolbar { min-height: 38px; }
 window.@APP@ .settings-option { min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
 window.@APP@ columnview > listview > row { min-height: 28px; }
-window.@APP@ .ribbon-panel { min-height: 70px; }
-window.@APP@ .ribbon-group-content { min-height: 54px; }
+window.@APP@ .commandbar { min-height: 40px; }
+window.@APP@ .inspector-section { padding-top: 10px; padding-bottom: 12px; }
 ";
 
 pub fn suite_file() -> std::path::PathBuf {

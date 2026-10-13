@@ -7,12 +7,12 @@ app gets it by using them rather than by copying another app:
 | --- | --- |
 | `nixe-core` | Its identity (`app::init`), XDG paths, the preferences store (`prefs_store!`), running commands, atomic writes, moving files from old names (`migrate`) |
 | `nixe-theme` | Palettes, the bundled and user themes, Follow Omarchy, the suite-wide theme, the base stylesheet (`base.css`) |
-| `nixe-ui` | Widgets and option rows, the settings card, the window frame (`chrome`), the ribbon, the common keys |
+| `nixe-ui` | Widgets and option rows, the settings card, the window frame (`chrome`), the command bar and Inspector, the common keys |
 | `nixe-icons` | The app icons (`make_icons.py`) |
 
 **Music** (`apps/music`) is the reference app with a sidebar, **Settings**
 (`apps/settings`) the reference for an app whose pages are all settings, and **Write**
-(`apps/office`) the reference for a document editor with a ribbon. If a detail isn't
+(`apps/office`) the reference for a document editor (command bar and Inspector). If a detail isn't
 covered here, do what they do.
 
 ---
@@ -197,8 +197,9 @@ dropdown (disabled while following), current-color swatches, Glow, and Reduce mo
 | Element | Size | Weight | Color | Extra |
 | --- | --- | --- | --- | --- |
 | Sidebar head app name | 1em | 600 | `dim_text` | |
-| Ribbon tab | 1em | 500 | `dim_text`, `text` when open | contextual tabs in `accent` |
-| Ribbon group label | 0.74em | 400 | `dim_text` | under the group |
+| Command bar label | 0.86em | 400 | `text` | beside its icon |
+| Inspector segment | 0.92em | 500 | `dim_text`, `text` when open | contextual segments in `accent` |
+| Inspector heading | 0.72em | 600 | `dim_text` | UPPERCASE, letter-spacing 0.1em |
 | Group heading | 0.9em | 600 | `dim_text` | UPPERCASE, letter-spacing 2 px |
 | Sidebar group label | 0.76em | 600 | `dim_text` | UPPERCASE, letter-spacing 1 px |
 | Settings card heading | 0.92em | 600 | `dim_text` | `SETTINGS`, letter-spacing 2.5 px |
@@ -225,7 +226,7 @@ that says what the option *does* for the user, not what it's called internally.
 | Thing | Value |
 | --- | --- |
 | Radius scale | **4** small parts (tags, key caps, segment buttons) · **6** buttons, chips, inputs, nav items · **10** cards, banners, toasts · **14** the settings card. Only switches and sliders are pills. |
-| Height scale | 30 bar buttons · 28 chips · 32 buttons and inputs · 35 table rows · 42 nav items · 46 toolbars · 36 ribbon tab strip · 80 ribbon panel · 34 status bar |
+| Height scale | 30 bar buttons · 28 chips · 32 buttons and inputs · 35 table rows · 42 nav items · 46 toolbars · 44 command bar · 28 Inspector segments · 34 status bar |
 | Spacing | multiples of 2 and 4 |
 | Page padding | 12 px top · 24 px sides · 36 px bottom (narrow: 12 / 16 / 32) |
 | Group heading margin | 26 px above, 12 px below; the page's first heading has none above, so the gap to the top edge equals the gap below it |
@@ -281,9 +282,11 @@ that says what the option *does* for the user, not what it's called internally.
   `F1 Shortcuts` button on the left; on the right a live readout that matters for the
   app, then app-wide actions as small icon buttons (`chrome::status_action`: the
   equalizer, a temporary chat) and the settings gear last (`chrome::gear`).
-- **Document editors** (Write, Sheets, Present) put a **ribbon** above the document
-  (see Components). Its tab strip starts with the File menu and ends with Find and
-  the collapse chevron.
+- **Document editors** (Write, Sheets, Present) put a **command bar** above the
+  document and an **Inspector** at its right (see Components). The bar starts with the
+  File menu and ends with Find and the Inspector toggle. View switches (the outline,
+  the chart pane, the sorter), focus mode and full screen sit in the status bar beside
+  the zoom.
 - **Settings** open as a **card over the window**, not a page (see Components).
   `navigate("settings")` opens it, so old links and `--section settings` still work.
 - **Fullscreen** (players, viewers) hides the sidebar, search strip, status bar and
@@ -413,16 +416,26 @@ same way (Fonts' `show_shortcuts` is the template):
 hairline border. Gridlines are `border` at 0.3–0.45 alpha, axis labels 11 px
 `dim_text`, the line 2.5 px `accent` with a 0.14-alpha fill below it.
 
-**Ribbon** (`nixe_ui::ribbon`): a 36 px strip of tabs over an 80 px panel of labelled
-groups, a hairline below. Each group holds one or two rows of the usual 30 px controls
-(or a large button: an icon over its name) with its label underneath; groups are split
-by `@divider`. The open tab is `@nav_active`; contextual tabs (Picture, Drawing,
-Object) show in `accent` while they apply and open on their own. The ribbon never
-grows taller: when a window is too narrow, the least important groups (lowest
-`priority`) fold into a button each that opens them in a popover. <kbd>Ctrl</kbd>+<kbd>F1</kbd>,
-the chevron, or a double click on a tab collapses the panel to the strip; then a
-click on a tab shows its panel until the next click. The choice is saved as
-`ribbon_collapsed`.
+**Command bar** (`nixe_ui::commandbar`): one 44 px row with a hairline below, for what
+you do to a document: the File menu, undo and redo (`lead`), then the things you add
+as 30 px tools, an icon and a 0.86em label (`tool`, with a `priority`), and the bar's
+main action as an accent pill (`primary`, at most one). Groups are split by short
+18 px dividers. The file's name sits in the middle, its extension dimmed and an accent
+dot while unsaved; clicking it is Save as. The bar never wraps: when it runs out of
+room the tools drop their labels, then the least important fold into the `⋯` menu,
+which also holds the tools added with `more`.
+
+**Inspector** (`nixe_ui::inspector`): a 288 px panel at the document's right, in
+`theme_surface`, with the formatting for what's selected. A segmented switch at its top
+picks a segment (Write: Text · Page · Review); contextual segments (Picture, Drawing,
+Object) appear in `accent` and are picked while something matching is selected. Each
+segment is a column of sections: an UPPERCASE 0.72em heading, then controls that fill
+the row (`add`, `row`, `field` with an 84 px label column, `segmented` for joined
+buttons like B I U). Nothing sits stranded in empty space. It docks beside the
+document when the document leaves it room, and floats over it otherwise; Esc closes a
+floating one. <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd> (or <kbd>Ctrl</kbd>+<kbd>F1</kbd>)
+shows and hides it, per editor (`inspector` in the settings: open by default, closed in
+Sheets). The palette opens it at the segment of the control it presses.
 
 **App icons** (`nixe-icons`): a 128 px canvas with a 112 px tile at 8, radius 26, in a
 diagonal `#2a2f45` → `#16182a` gradient with a `#7aa2f7` hairline at 0.4 opacity. The
