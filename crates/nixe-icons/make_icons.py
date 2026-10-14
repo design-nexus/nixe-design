@@ -26,6 +26,11 @@ TEMPLATE = '''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" v
 CUT = '#1f2337'
 
 GLYPHS = {
+    # An address book with a person.
+    'Contacts': '''    <rect x="40" y="32" width="50" height="64" rx="6"/>
+    <path d="M32 46H44M32 64H44M32 82H44"/>
+    <circle cx="65" cy="53" r="8"/>
+    <path d="M51 80V77A14 14 0 0 1 79 77V80"/>''',
     # Sliders
     'Settings': f'''    <path d="M36 44H92M36 64H92M36 84H92"/>
     <circle cx="52" cy="44" r="7" fill="{CUT}"/>
