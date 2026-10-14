@@ -172,17 +172,23 @@ List user themes after the bundled ones, sorted by name, with ids `custom:<file 
 
 ### One theme for the suite
 
-The theme (`mode` and `theme`), density and text size live in
+The theme (`mode` and `theme`), density, text size and where apps open (`start`) live in
 `~/.config/nixe/theme.toml`. Picking a theme in any app writes it there, and every open
 app follows within a second (`nixe-theme` polls the file with Omarchy's). An app passes
 `set_theme` to `nixe_theme::install` so the shared choice lands in its own preferences.
+
+**Open on:** every app opens on its start page (`start = "home"`, the default) unless
+the suite is set to reopen the page shown last (`start = "last"`). An app picks its
+first page with `nixe_theme::start_page(home, last)` and still saves the last page it
+showed. The choice is the **Open on** row (`nixe_ui::widgets::start_row`), in each
+app's window group and in Settings → Nixe apps.
 
 ### Preferences (per app, `~/.config/<app>/settings.toml`)
 
 `mode = "omarchy" | "theme"`, `theme = "<id>"`, `glow = true`,
 `reduce_motion = false`, `sidebar_collapsed = false`. Picking a theme sets `mode = "theme"`. Every app exposes these
 in its own settings, in a group called **<App> window** (e.g. **Settings window**): Follow Omarchy theme, a theme
-dropdown (disabled while following), current-color swatches, Glow, and Reduce motion.
+dropdown (disabled while following), current-color swatches, Glow, Reduce motion, and Open on.
 
 ---
 
