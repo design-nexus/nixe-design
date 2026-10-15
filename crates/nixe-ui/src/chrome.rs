@@ -55,9 +55,11 @@ pub fn search_strip(entry: &gtk::SearchEntry) -> gtk::Box {
         parent.remove(entry);
     }
     strip.append(entry);
-    strip.set_visible(entry.is_visible());
+    strip.set_visible(entry.get_visible());
     let s = strip.clone();
-    entry.connect_visible_notify(move |e| s.set_visible(e.is_visible()));
+    // Effective visibility includes the hidden strip itself; use the entry’s
+    // requested visibility so showing it can reveal its parent.
+    entry.connect_visible_notify(move |e| s.set_visible(e.get_visible()));
     strip
 }
 

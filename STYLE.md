@@ -15,6 +15,12 @@ app gets it by using them rather than by copying another app:
 (`apps/office`) the reference for a document editor (command bar and Inspector). If a detail isn't
 covered here, do what they do.
 
+**Read the reference source before building or changing a layout.** Open Music's
+`src/window.rs` and the relevant shared `nixe-ui` widget and `nixe-theme/base.css`
+implementation. Copy the existing construction, sizing and resize behavior; do not
+approximate it from screenshots or invent another sidebar implementation. Contacts
+also demonstrates the corrected non-expanding navigation structure.
+
 ---
 
 ## 1. Principles
@@ -315,6 +321,52 @@ that says what the option *does* for the user, not what it's called internally.
 - **Deleting:** prefer doing it at once with an Undo toast (hide the item, delete when
   the toast has gone) to asking first. Keep a confirmation only for what can't come
   back, like deleting files from disk.
+
+### Required GTK sidebar construction
+
+The sidebar must stay at the shared stylesheet's width, never grow to fill spare
+space or become a fraction of the window. Use Music's sidebar structure:
+
+```rust
+let sidebar = gtk::Box::new(gtk::Orientation::Vertical, 0);
+sidebar.add_css_class("settings-navigation");
+sidebar.set_hexpand(false); // Required: expanding labels must not expand the sidebar.
+
+let list = gtk::Box::new(gtk::Orientation::Vertical, 0);
+list.set_hexpand(false);
+let navigation = gtk::ScrolledWindow::builder()
+    .hexpand(false)
+    .vexpand(true)
+    .hscrollbar_policy(gtk::PolicyType::Never)
+    .vscrollbar_policy(gtk::PolicyType::External)
+    .child(&list)
+    .build();
+sidebar.append(&head.root); // chrome::sidebar_head(...)
+sidebar.append(&navigation);
+
+let content = gtk::Box::new(gtk::Orientation::Vertical, 0);
+content.add_css_class("settings-content");
+content.set_hexpand(true); // Only the page column receives spare horizontal space.
+```
+
+- Explicitly disable horizontal expansion on the sidebar, navigation list and
+  navigation scroller. A label with `hexpand(true)` otherwise propagates expansion
+  up through its parents and can make the sidebar take half the window.
+- Let shared `.settings-navigation` and `.settings-navigation.compact` CSS own the
+  widths (250 px expanded; about 52 px compact). `set_width_request` sets a minimum,
+  not a maximum, and is not a substitute for `set_hexpand(false)`. Do not add
+  per-app width overrides, percentage widths or a resizable split for navigation.
+- Use Music's nav buttons: 12 px between icon and label, an expanding ellipsized
+  label marked `.compact-hide`, and a tooltip. In compact mode, hide labels,
+  counts and group labels, center the button content, and call
+  `chrome::set_head_compact`.
+- Copy Music's resize handling: use the allocated window width (default width
+  before allocation), compact below 980 px or when `sidebar_collapsed` is set,
+  and respond to compositor resizing through the overlay resize probe. Keep its
+  slow fallback for missed resize events. Fit the shared settings card on resize.
+- Before installing a layout change, check this sizing behavior at a normal
+  window width and at 800 px. A sidebar taking spare space or remaining expanded
+  in an 800 px window is a defect, not an alternative layout.
 
 ---
 

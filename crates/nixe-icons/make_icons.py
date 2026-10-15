@@ -26,6 +26,10 @@ TEMPLATE = '''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" v
 CUT = '#1f2337'
 
 GLYPHS = {
+    # A shopping bag with a handle.
+    'Store': '''    <path d="M40 48H88L94 94H34Z"/>
+    <path d="M52 50V42A12 12 0 0 1 76 42V50"/>
+    <path d="M54 72H74M64 62V82"/>''',
     # An address book with a person.
     'Contacts': '''    <rect x="40" y="32" width="50" height="64" rx="6"/>
     <path d="M32 46H44M32 64H44M32 82H44"/>
