@@ -76,6 +76,7 @@ fn install(overlay: &gtk::Overlay, spec: Spec, root: &gtk::Widget, body: &gtk::B
     let mut dialog = build(spec, root, body);
     dialog.current = current;
     overlay.add_overlay(&dialog.veil);
+    overlay.set_measure_overlay(&dialog.veil, false);
     DIALOG.with(|d| *d.borrow_mut() = Some(dialog));
 }
 
@@ -100,6 +101,7 @@ pub fn is_open() -> bool {
 pub fn close() {
     DIALOG.with(|d| {
         if let Some(d) = d.borrow().as_ref() {
+            d.card.set_size_request(-1, -1);
             d.veil.set_visible(false);
         }
     });
@@ -126,7 +128,8 @@ pub fn fit(window: &gtk::ApplicationWindow) {
     if w <= 0 || h <= 0 {
         return;
     }
-    let size = ((w - 48).clamp(0, 1040), (h - 48).clamp(0, 720));
+    let margin = if w < 580 { 20 } else { 48 };
+    let size = ((w - margin).clamp(0, 1040), (h - margin).clamp(0, 720));
     DIALOG.with(|d| {
         if let Some(d) = d.borrow().as_ref()
             && d.card.size_request() != size
@@ -137,6 +140,11 @@ pub fn fit(window: &gtk::ApplicationWindow) {
                 d.card.add_css_class("narrow");
             } else {
                 d.card.remove_css_class("narrow");
+            }
+            if size.0 < 540 {
+                d.card.add_css_class("compact");
+            } else {
+                d.card.remove_css_class("compact");
             }
         }
     });

@@ -98,6 +98,10 @@ GLYPHS = {
     'Office': '''    <rect x="48" y="30" width="42" height="54" rx="6"/>
     <path d="M40 42V92A6 6 0 0 0 46 98H78"/>
     <path d="M58 46H80M58 58H80M58 70H72"/>''',
+    # A cloud and sun with rain
+    'Weather': '''    <path d="M46 54A12 12 0 1 1 66 44"/>
+    <path d="M44 76H82A12 12 0 0 0 82 52A16 16 0 0 0 52 48A14 14 0 0 0 44 76Z"/>
+    <path d="M50 86L46 94M64 86L60 94M78 86L74 94"/>''',
 }
 
 out = pathlib.Path(__file__).parent / 'apps'
