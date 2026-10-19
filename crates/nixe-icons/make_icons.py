@@ -26,6 +26,11 @@ TEMPLATE = '''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" v
 CUT = '#1f2337'
 
 GLYPHS = {
+    # A commit lane branching into a second lane.
+    'Git': '''    <path d="M46 44V84M82 44V56C82 68 46 62 46 76"/>
+    <circle cx="46" cy="38" r="7"/>
+    <circle cx="82" cy="38" r="7"/>
+    <circle cx="46" cy="90" r="7"/>''',
     # A shopping bag with a handle.
     'Store': '''    <path d="M40 48H88L94 94H34Z"/>
     <path d="M52 50V42A12 12 0 0 1 76 42V50"/>
