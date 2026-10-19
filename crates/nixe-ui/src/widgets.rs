@@ -177,6 +177,18 @@ pub fn config_button(files: &[PathBuf]) -> gtk::Widget {
     menu.upcast()
 }
 
+fn hide_scrollbars_recursive(w: &gtk::Widget) {
+    if let Some(sc) = w.downcast_ref::<gtk::ScrolledWindow>() {
+        sc.set_vscrollbar_policy(gtk::PolicyType::External);
+        sc.set_hscrollbar_policy(gtk::PolicyType::Never);
+    }
+    let mut child = w.first_child();
+    while let Some(c) = child {
+        hide_scrollbars_recursive(&c);
+        child = c.next_sibling();
+    }
+}
+
 pub fn dropdown(options: &[(String, String)], current: &str) -> gtk::DropDown {
     let labels: Vec<&str> = options.iter().map(|(_, l)| l.as_str()).collect();
     let dd = gtk::DropDown::from_strings(&labels);
@@ -185,6 +197,7 @@ pub fn dropdown(options: &[(String, String)], current: &str) -> gtk::DropDown {
     } else {
         dd.set_selected(gtk::INVALID_LIST_POSITION);
     }
+    hide_scrollbars_recursive(dd.upcast_ref());
     dd
 }
 

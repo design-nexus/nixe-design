@@ -404,14 +404,20 @@ window.@APP@ scale marks {
   color: alpha(@theme_dim_text, 0.7);
 }
 
-window.@APP@ scrollbar {
+scrollbar,
+scrollbar *,
+window.@APP@ scrollbar,
+window.@APP@ scrollbar *,
+popover scrollbar,
+popover scrollbar * {
+  opacity: 0;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
   background: transparent;
-}
-
-window.@APP@ scrollbar slider {
-  min-width: 6px;
-  border-radius: 999px;
-  background: alpha(@theme_muted, 0.9);
+  border: none;
+  box-shadow: none;
 }
 
 

@@ -42,6 +42,10 @@ also demonstrates the corrected non-expanding navigation structure.
   <kbd>F1</kbd> lists the shortcuts, <kbd>Ctrl</kbd>+<kbd>Q</kbd>/<kbd>W</kbd> closes.
 - **Works tiled at half-screen.** Layouts must fit an 800 px wide window with no
   horizontal scroll (see Responsive).
+- **No visible scrollbars anywhere.** Every scrollable area — pages, sidebars,
+  horizontal strips, tables, dialogs, popovers and dropdown menus — must scroll with
+  hidden scrollbars (`gtk::PolicyType::External` or `Never`, and zero-size/transparent
+  `scrollbar` rules in CSS). Never show a visible scrollbar track or thumb.
 
 ---
 
