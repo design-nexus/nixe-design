@@ -8,3 +8,5 @@ pub mod keys;
 pub mod palette;
 pub mod settings_card;
 pub mod widgets;
+
+pub mod media;

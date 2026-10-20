@@ -66,6 +66,10 @@ GLYPHS = {
     # Play in a frame
     'MediaPlayer': '''    <rect x="34" y="40" width="60" height="48" rx="8"/>
     <path d="M58 54L76 64L58 74Z"/>''',
+    # A cinema screen with two seats
+    'Theater': '''    <path d="M34 36H94V70H34Z"/>
+    <path d="M58 44L74 53L58 62Z"/>
+    <path d="M40 86V94M52 86V94M76 86V94M88 86V94M38 82H54M74 82H90"/>''',
     # A speech bubble
     'Chat': '''    <path d="M44 36H84A8 8 0 0 1 92 44V70A8 8 0 0 1 84 78H60L46 90V78H44A8 8 0 0 1 36 70V44A8 8 0 0 1 44 36Z"/>
     <path d="M52 57H52.01M64 57H64.01M76 57H76.01"/>''',
