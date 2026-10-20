@@ -85,3 +85,16 @@ pub fn set_title(window: &impl IsA<gtk::Window>, app_name: &str, page: &str) {
     let title = if page.is_empty() || page == app_name { app_name.to_string() } else { format!("{app_name} — {page}") };
     window.set_title(Some(&title));
 }
+
+/// The suite's F1 control: the key is highlighted separately from its label.
+pub fn shortcuts_button(open: impl Fn() + 'static) -> gtk::Button {
+    let help = gtk::Button::new();
+    help.add_css_class("status-help");
+    let content = widgets::hbox(10);
+    content.append(&widgets::label("F1", "status-key"));
+    content.append(&widgets::label("Shortcuts", ""));
+    help.set_child(Some(&content));
+    help.set_tooltip_text(Some("Show the keyboard shortcuts"));
+    help.connect_clicked(move |_| open());
+    help
+}

@@ -102,6 +102,9 @@ GLYPHS = {
     'Weather': '''    <path d="M46 54A12 12 0 1 1 66 44"/>
     <path d="M44 76H82A12 12 0 0 0 82 52A16 16 0 0 0 52 48A14 14 0 0 0 44 76Z"/>
     <path d="M50 86L46 94M64 86L60 94M78 86L74 94"/>''',
+    # A crop frame around a screen
+    'Capture': '''    <rect x="40" y="44" width="48" height="36" rx="4"/>
+    <path d="M34 40V32H42M86 32H94V40M94 88V96H86M42 96H34V88"/>''',
     # A padlock with a keyhole.
     'Passwords': '''    <path d="M48 56V46A16 16 0 0 1 80 46V56"/>
     <rect x="38" y="56" width="52" height="38" rx="8"/>
