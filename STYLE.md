@@ -388,6 +388,10 @@ card draws a hairline border, radius 10. A *stacked* row puts a wide control und
 text.
 
 **Buttons:**
+- **No text buttons unless absolutely necessary.** An action is an icon button with a
+  tooltip naming it and its key ("New item (Ctrl+N)"). Text is for the few places an
+  icon can't say it plainly: a dialog's confirm and cancel pair, a banner's one action,
+  the second click of a dangerous action. Not toolbars, item headers, rows or lists;
 - default: transparent with a hairline border, `@row_hover` on hover;
 - primary (`suggested-action`): `@nav_active` fill, no border, weight 600, icon in `accent`;
 - destructive: `danger` text on `alpha(danger, 0.12)` with a `danger` border;
