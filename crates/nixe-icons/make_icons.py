@@ -112,6 +112,18 @@ GLYPHS = {
     # A crop frame around a screen
     'Capture': '''    <rect x="40" y="44" width="48" height="36" rx="4"/>
     <path d="M34 40V32H42M86 32H94V40M94 88V96H86M42 96H34V88"/>''',
+    # A calendar page: two binder rings and a grid of days.
+    'Calendar': '''    <rect x="36" y="42" width="56" height="50" rx="6"/>
+    <path d="M36 56H92M50 34V48M78 34V48"/>
+    <path d="M48 70H52M62 70H66M76 70H80M48 82H52M62 82H66"/>''',
+    # An envelope.
+    'Mail': '''    <rect x="34" y="42" width="60" height="44" rx="6"/>
+    <path d="M36 46L64 68L92 46"/>''',
+    # A checklist: one item ticked, two to do.
+    'Reminders': '''    <path d="M38 46L44 52L54 40"/>
+    <circle cx="46" cy="68" r="5"/>
+    <circle cx="46" cy="88" r="5"/>
+    <path d="M64 46H92M64 68H92M64 88H84"/>''',
     # A padlock with a keyhole.
     'Passwords': '''    <path d="M48 56V46A16 16 0 0 1 80 46V56"/>
     <rect x="38" y="56" width="52" height="38" rx="8"/>
