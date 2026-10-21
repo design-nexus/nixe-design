@@ -475,7 +475,7 @@ dependencies = [
 [[package]]
 name = "nixe-core"
 version = "0.1.0"
-source = "git+file:///home/ken/Projects/nixe-migration-97c1899-reviewed/nixe-core?rev=e4595e68a4fd9b44bd15e95311ace1d0fb669bc4#e4595e68a4fd9b44bd15e95311ace1d0fb669bc4"
+source = "git+https://github.com/design-nexus/nixe-core.git?rev=e4595e68a4fd9b44bd15e95311ace1d0fb669bc4#e4595e68a4fd9b44bd15e95311ace1d0fb669bc4"
 dependencies = [
  "anyhow",
  "gtk4",
