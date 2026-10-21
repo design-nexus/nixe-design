@@ -261,7 +261,7 @@ fn build(spec: Spec, root: &gtk::Widget, body: &gtk::Box) -> Dialog {
 }
 
 /// Show one group on its own.
-fn select(name: &str) {
+pub fn select(name: &str) {
     DIALOG.with(|d| {
         let mut d = d.borrow_mut();
         let Some(d) = d.as_mut() else { return };
