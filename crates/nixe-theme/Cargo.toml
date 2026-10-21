@@ -8,6 +8,6 @@ repository.workspace = true
 
 [dependencies]
 gtk = { version = "0.11", package = "gtk4", features = ["v4_18"] }
-nixe-core = { git = "https://github.com/design-nexus/nixe-core.git", rev = "e4595e68a4fd9b44bd15e95311ace1d0fb669bc4" }
+nixe-core = { git = "https://github.com/design-nexus/nixe-core.git", rev = "7cd0be5d09cd1d91510794f58bbc720605951c12" }
 serde = { version = "1", features = ["derive"] }
 toml = "1"
