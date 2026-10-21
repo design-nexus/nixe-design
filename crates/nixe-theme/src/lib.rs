@@ -576,7 +576,10 @@ pub fn apply() {
         }
     });
     if let Some(settings) = gtk::Settings::default() {
-        settings.set_gtk_application_prefer_dark_theme(!palette.light);
+        if let Some(property)=settings.find_property("gtk-interface-color-scheme") {
+            if let Some(value)=glib::EnumClass::with_type(property.value_type()).and_then(|class|class.to_value_by_nick(if palette.light{"light"}else{"dark"})){settings.set_property_from_value("gtk-interface-color-scheme",&value);}
+        }else{settings.set_gtk_application_prefer_dark_theme(!palette.light);}
+
         settings.set_gtk_enable_animations(!prefs.reduce_motion);
     }
     notify_listeners();
