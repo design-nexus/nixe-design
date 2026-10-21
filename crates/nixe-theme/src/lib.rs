@@ -579,16 +579,33 @@ pub fn apply() {
         settings.set_gtk_application_prefer_dark_theme(!palette.light);
         settings.set_gtk_enable_animations(!prefs.reduce_motion);
     }
+    notify_listeners();
+}
+
+/// Run every listener with the lists taken out, so a listener may subscribe (a page
+/// rebuilt on a theme change does) without borrowing them twice.
+fn notify_listeners() {
+    let mut taken = LISTENERS.with(|l| std::mem::take(&mut *l.borrow_mut()));
+    taken.retain(|(w, _)| w.upgrade().is_some());
+    for (_, f) in &taken {
+        f();
+    }
     LISTENERS.with(|l| {
-        l.borrow_mut().retain(|(w, _)| w.upgrade().is_some());
-        for (_, f) in l.borrow().iter() {
-            f();
-        }
+        let mut l = l.borrow_mut();
+        let added = std::mem::take(&mut *l);
+        *l = taken;
+        l.extend(added);
+        l.retain(|(w, _)| w.upgrade().is_some());
     });
+    let global = GLOBAL.with(|g| std::mem::take(&mut *g.borrow_mut()));
+    for f in &global {
+        f();
+    }
     GLOBAL.with(|g| {
-        for f in g.borrow().iter() {
-            f();
-        }
+        let mut g = g.borrow_mut();
+        let added = std::mem::take(&mut *g);
+        *g = global;
+        g.extend(added);
     });
 }
 
@@ -661,6 +678,20 @@ impl Rgb {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn listener_may_subscribe_while_notified() {
+        thread_local!(static RUNS: std::cell::Cell<u32> = const { std::cell::Cell::new(0) });
+        on_change(|| {
+            RUNS.with(|r| r.set(r.get() + 1));
+            on_change(|| RUNS.with(|r| r.set(r.get() + 10)));
+        });
+        notify_listeners();
+        assert_eq!(RUNS.with(|r| r.get()), 1);
+        notify_listeners();
+        // The first listener again (and it adds another), plus the one it added.
+        assert_eq!(RUNS.with(|r| r.get()), 12);
+    }
 
     #[test]
     fn maps_omarchy_colors() {
