@@ -8,6 +8,7 @@ revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=
 (root / 'dist').mkdir(exist_ok=True)
 with tarfile.open(root / 'dist' / f'nixe-design-{revision}.tar.gz', 'w:gz') as archive:
     for name in ['STYLE.md', 'LICENSE', 'crates/nixe-icons/apps', 'crates/nixe-icons/make_icons.py',
-                 'crates/nixe-theme/src', 'crates/nixe-ui/src']:
+                 'crates/nixe-theme/src', 'crates/nixe-ui/src', 'crates/nixe-playback/data',
+                 'crates/nixe-playback/src/controls.css']:
         archive.add(root / name, arcname=name)
 print(root / 'dist' / f'nixe-design-{revision}.tar.gz')
