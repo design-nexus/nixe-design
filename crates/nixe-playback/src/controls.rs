@@ -62,20 +62,45 @@ fn menu_button(icon: &str, tooltip: &str) -> gtk::MenuButton {
     let pop = gtk::Popover::new();
     pop.add_css_class("menu-popover");
     let content = widgets::vbox(1);
-    pop.set_child(Some(&content));
+    let scroll = gtk::ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Never)
+        .propagate_natural_width(true)
+        .propagate_natural_height(true)
+        .child(&content)
+        .build();
+    pop.set_child(Some(&scroll));
     mb.set_popover(Some(&pop));
     mb
+}
+
+/// The tallest a menu can be and still fit in the window above or below its button.
+fn menu_height_limit(pop: &gtk::Popover) -> i32 {
+    const MIN: i32 = 160;
+    let Some(button) = pop.parent() else { return MIN };
+    let Some(root) = button.root() else { return MIN };
+    let Some(top) = button.compute_point(&root, &gtk::graphene::Point::new(0.0, 0.0)) else { return MIN };
+    let top = top.y() as i32;
+    let room = top.max(root.height() - top - button.height());
+    (room - 48).max(MIN)
 }
 
 /// Fill a menu fresh every time it opens, as Media Player does.
 pub fn fill_menu(button: &gtk::MenuButton, fill: impl Fn(&gtk::Box, &gtk::Popover) + 'static) {
     let pop = button.popover().expect("playback menus have popovers");
-    let content = pop.child().and_downcast::<gtk::Box>().expect("playback menu content");
+    let scroll = pop.child().and_downcast::<gtk::ScrolledWindow>().expect("playback menu scroller");
+    let content = scroll
+        .child()
+        .and_downcast::<gtk::Viewport>()
+        .and_then(|v| v.child())
+        .and_downcast::<gtk::Box>()
+        .expect("playback menu content");
     pop.connect_show(move |pop| {
         while let Some(child) = content.first_child() {
             content.remove(&child);
         }
         fill(&content, pop);
+        scroll.set_max_content_height(menu_height_limit(pop));
+        scroll.vadjustment().set_value(0.0);
     });
 }
 
