@@ -62,13 +62,7 @@ fn menu_button(icon: &str, tooltip: &str) -> gtk::MenuButton {
     let pop = gtk::Popover::new();
     pop.add_css_class("menu-popover");
     let content = widgets::vbox(1);
-    let scroll = gtk::ScrolledWindow::builder()
-        .hscrollbar_policy(gtk::PolicyType::Never)
-        .propagate_natural_width(true)
-        .propagate_natural_height(true)
-        .child(&content)
-        .build();
-    pop.set_child(Some(&scroll));
+    pop.set_child(Some(&content));
     mb.set_popover(Some(&pop));
     mb
 }
@@ -85,15 +79,18 @@ fn menu_height_limit(pop: &gtk::Popover) -> i32 {
 }
 
 /// Fill a menu fresh every time it opens, as Media Player does.
+/// The popover's child must be a box; it is moved into a scroller so long menus fit the window.
 pub fn fill_menu(button: &gtk::MenuButton, fill: impl Fn(&gtk::Box, &gtk::Popover) + 'static) {
     let pop = button.popover().expect("playback menus have popovers");
-    let scroll = pop.child().and_downcast::<gtk::ScrolledWindow>().expect("playback menu scroller");
-    let content = scroll
-        .child()
-        .and_downcast::<gtk::Viewport>()
-        .and_then(|v| v.child())
-        .and_downcast::<gtk::Box>()
-        .expect("playback menu content");
+    let content = pop.child().and_downcast::<gtk::Box>().expect("playback menu content");
+    pop.set_child(None::<&gtk::Widget>);
+    let scroll = gtk::ScrolledWindow::builder()
+        .hscrollbar_policy(gtk::PolicyType::Never)
+        .propagate_natural_width(true)
+        .propagate_natural_height(true)
+        .child(&content)
+        .build();
+    pop.set_child(Some(&scroll));
     pop.connect_show(move |pop| {
         while let Some(child) = content.first_child() {
             content.remove(&child);
