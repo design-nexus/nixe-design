@@ -1,0 +1,67 @@
+# Nixe Light: the light counterpart of Nixe Dark.
+# Copy to ~/.config/nixe/themes/nixe-light.toml and keep only the keys to change.
+name = "Nixe Light"
+light = true
+
+# Core colours
+bg = "#f7f7f8"
+surface = "#ffffff"
+text = "#18181b"
+dim_text = "#5a5a64"
+accent = "#2f6fea"
+border = "#dcdce1"
+muted = "#d4d4d9"
+highlight = "#ececef"
+danger = "#d93a3a"
+glow = "#2f6fea"
+shadow = "#c8c8cd"
+
+# Surfaces and text
+panel = "#f0f0f2"
+card = "#ffffff"
+raised = "#ffffff"
+popover = "#ffffff"
+text_tertiary = "#6c6c76"
+divider = "#e6e6ea"
+warning = "#b7791f"
+success = "#1f9e5c"
+
+# How strongly the accent tints hovered and selected rows (0 to 1)
+hover = 0.05
+selection = 0.14
+
+# Placeholder app accents; not final
+[accents]
+files = "#2f6fea"
+notes = "#b7791f"
+photos = "#d4532f"
+mail = "#6f4de0"
+calendar = "#d93a3a"
+music = "#c93a7b"
+home = "#1f9e5c"
+
+[sections.settings]
+home = "#1a8fa0"
+connections = "#2f6fea"
+personalization = "#6f4de0"
+privacy = "#1f9e5c"
+system = "#c46a12"
+
+[font]
+ui = "Inter"
+mono = "JetBrains Mono"
+weight = 400
+heading_weight = 600
+
+[shape]
+radius_small = 7
+radius_card = 11
+radius_dialog = 15
+
+[material]
+surface = "solid"
+see_through = false
+blended = true
+
+[icons]
+pack = "nixe-icons"

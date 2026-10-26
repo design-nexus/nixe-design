@@ -1,0 +1,13 @@
+name = "Solarized Dark"
+bg = "#002b36"
+surface = "#00232c"
+text = "#93a1a1"
+dim_text = "#586e75"
+accent = "#268bd2"
+border = "#073642"
+muted = "#0f4a56"
+highlight = "#073642"
+danger = "#dc322f"
+glow = "#268bd2"
+shadow = "#001e26"
+light = false

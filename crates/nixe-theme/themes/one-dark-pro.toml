@@ -1,0 +1,13 @@
+name = "One Dark Pro"
+bg = "#282c34"
+surface = "#21252b"
+text = "#abb2bf"
+dim_text = "#5c6370"
+accent = "#61afef"
+border = "#3e4451"
+muted = "#4b5263"
+highlight = "#2c313a"
+danger = "#e06c75"
+glow = "#61afef"
+shadow = "#181a1f"
+light = false

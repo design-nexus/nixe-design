@@ -1,0 +1,13 @@
+name = "Kanagawa"
+bg = "#1f1f28"
+surface = "#16161d"
+text = "#dcd7ba"
+dim_text = "#727169"
+accent = "#7e9cd8"
+border = "#2a2a37"
+muted = "#363646"
+highlight = "#2d4f67"
+danger = "#e82424"
+glow = "#7e9cd8"
+shadow = "#0d0c0c"
+light = false

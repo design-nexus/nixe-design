@@ -1,0 +1,13 @@
+name = "Gruvbox Dark"
+bg = "#282828"
+surface = "#1d2021"
+text = "#ebdbb2"
+dim_text = "#928374"
+accent = "#fabd2f"
+border = "#3c3836"
+muted = "#504945"
+highlight = "#3c3836"
+danger = "#fb4934"
+glow = "#fabd2f"
+shadow = "#141414"
+light = false

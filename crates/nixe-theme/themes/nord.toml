@@ -1,0 +1,13 @@
+name = "Nord"
+bg = "#2e3440"
+surface = "#292e39"
+text = "#eceff4"
+dim_text = "#7b88a1"
+accent = "#88c0d0"
+border = "#3b4252"
+muted = "#434c5e"
+highlight = "#3b4252"
+danger = "#bf616a"
+glow = "#88c0d0"
+shadow = "#242933"
+light = false

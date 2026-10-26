@@ -1,0 +1,13 @@
+name = "Dracula"
+bg = "#282a36"
+surface = "#21222c"
+text = "#f8f8f2"
+dim_text = "#6272a4"
+accent = "#bd93f9"
+border = "#44475a"
+muted = "#44475a"
+highlight = "#343746"
+danger = "#ff5555"
+glow = "#bd93f9"
+shadow = "#191a21"
+light = false

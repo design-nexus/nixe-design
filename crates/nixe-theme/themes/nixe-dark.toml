@@ -1,0 +1,67 @@
+# Nixe Dark: neutral near-black, accents only where you are and what is on.
+# Copy to ~/.config/nixe/themes/nixe-dark.toml and keep only the keys to change.
+name = "Nixe Dark"
+light = false
+
+# Core colours
+bg = "#09090a"
+surface = "#1a1a1c"
+text = "#e8e8ea"
+dim_text = "#9a9aa1"
+accent = "#5b9cff"
+border = "#2a2a2d"
+muted = "#2a2a2d"
+highlight = "#1d1d1f"
+danger = "#ff6b6b"
+glow = "#5b9cff"
+shadow = "#030303"
+
+# Surfaces and text
+panel = "#0e0e0f"
+card = "#161617"
+raised = "#1d1d1f"
+popover = "#1a1a1c"
+text_tertiary = "#7b7b83"
+divider = "#1a1a1c"
+warning = "#e0a63a"
+success = "#46d08a"
+
+# How strongly the accent tints hovered and selected rows (0 to 1)
+hover = 0.06
+selection = 0.16
+
+# Placeholder app accents; not final
+[accents]
+files = "#5b9cff"
+notes = "#f2b545"
+photos = "#ff7a59"
+mail = "#9d7bff"
+calendar = "#ff6b6b"
+music = "#ff6fae"
+home = "#46d08a"
+
+[sections.settings]
+home = "#5cc8d8"
+connections = "#5b9cff"
+personalization = "#9d7bff"
+privacy = "#46d08a"
+system = "#ff9f43"
+
+[font]
+ui = "Inter"
+mono = "JetBrains Mono"
+weight = 400
+heading_weight = 600
+
+[shape]
+radius_small = 7
+radius_card = 11
+radius_dialog = 15
+
+[material]
+surface = "solid"
+see_through = false
+blended = true
+
+[icons]
+pack = "nixe-icons"

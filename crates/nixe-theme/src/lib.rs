@@ -10,6 +10,10 @@ use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::time::SystemTime;
 
+mod themes;
+pub use themes::{Font, Look, Material, Shape, Surface, all, bundled, custom, edit_copy, look_css, theme_dirs};
+use themes::{ThemeFile, themes_stamp};
+
 /// Where the colours come from.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -71,185 +75,8 @@ pub struct Theme {
     pub id: String,
     pub name: String,
     pub palette: Palette,
-}
-
-macro_rules! palette {
-    ($bg:expr, $surface:expr, $text:expr, $dim:expr, $accent:expr, $border:expr, $muted:expr,
-     $highlight:expr, $danger:expr, $glow:expr, $shadow:expr, $light:expr) => {
-        Palette {
-            bg: $bg.into(),
-            surface: $surface.into(),
-            text: $text.into(),
-            dim_text: $dim.into(),
-            accent: $accent.into(),
-            border: $border.into(),
-            muted: $muted.into(),
-            highlight: $highlight.into(),
-            danger: $danger.into(),
-            glow: $glow.into(),
-            shadow: $shadow.into(),
-            light: $light,
-        }
-    };
-}
-
-fn theme(id: &str, name: &str, palette: Palette) -> Theme {
-    Theme { id: id.into(), name: name.into(), palette }
-}
-
-pub fn bundled() -> Vec<Theme> {
-    vec![
-        theme(
-            "dracula",
-            "Dracula",
-            palette!(
-                "#282a36", "#21222c", "#f8f8f2", "#6272a4", "#bd93f9", "#44475a", "#44475a", "#343746", "#ff5555", "#bd93f9",
-                "#191a21", false
-            ),
-        ),
-        theme(
-            "catppuccin-mocha",
-            "Catppuccin Mocha",
-            palette!(
-                "#1e1e2e", "#181825", "#cdd6f4", "#7f849c", "#89b4fa", "#313244", "#45475a", "#313244", "#f38ba8", "#89b4fa",
-                "#11111b", false
-            ),
-        ),
-        theme(
-            "catppuccin-macchiato",
-            "Catppuccin Macchiato",
-            palette!(
-                "#24273a", "#1e2030", "#cad3f5", "#8087a2", "#8aadf4", "#363a4f", "#494d64", "#363a4f", "#ed8796", "#8aadf4",
-                "#181926", false
-            ),
-        ),
-        theme(
-            "catppuccin-frappe",
-            "Catppuccin Frappé",
-            palette!(
-                "#303446", "#292c3c", "#c6d0f5", "#838ba7", "#8caaee", "#414559", "#51576d", "#414559", "#e78284", "#8caaee",
-                "#232634", false
-            ),
-        ),
-        theme(
-            "catppuccin-latte",
-            "Catppuccin Latte",
-            palette!(
-                "#eff1f5", "#e6e9ef", "#4c4f69", "#8c8fa1", "#1e66f5", "#ccd0da", "#bcc0cc", "#dce0e8", "#d20f39", "#1e66f5",
-                "#9ca0b0", true
-            ),
-        ),
-        theme(
-            "tokyo-night",
-            "Tokyo Night",
-            palette!(
-                "#1a1b26", "#16161e", "#c0caf5", "#565f89", "#7aa2f7", "#292e42", "#3b4261", "#283457", "#f7768e", "#7aa2f7",
-                "#0f0f14", false
-            ),
-        ),
-        theme(
-            "tokyo-night-storm",
-            "Tokyo Night Storm",
-            palette!(
-                "#24283b", "#1f2335", "#c0caf5", "#565f89", "#7aa2f7", "#292e42", "#3b4261", "#2e3c64", "#f7768e", "#7aa2f7",
-                "#1b1e2d", false
-            ),
-        ),
-        theme(
-            "tokyo-night-moon",
-            "Tokyo Night Moon",
-            palette!(
-                "#222436", "#1e2030", "#c8d3f5", "#636da6", "#82aaff", "#2f334d", "#3b4261", "#2d3f76", "#ff757f", "#82aaff",
-                "#191a2a", false
-            ),
-        ),
-        theme(
-            "one-dark-pro",
-            "One Dark Pro",
-            palette!(
-                "#282c34", "#21252b", "#abb2bf", "#5c6370", "#61afef", "#3e4451", "#4b5263", "#2c313a", "#e06c75", "#61afef",
-                "#181a1f", false
-            ),
-        ),
-        theme(
-            "nord",
-            "Nord",
-            palette!(
-                "#2e3440", "#292e39", "#eceff4", "#7b88a1", "#88c0d0", "#3b4252", "#434c5e", "#3b4252", "#bf616a", "#88c0d0",
-                "#242933", false
-            ),
-        ),
-        theme(
-            "gruvbox-dark",
-            "Gruvbox Dark",
-            palette!(
-                "#282828", "#1d2021", "#ebdbb2", "#928374", "#fabd2f", "#3c3836", "#504945", "#3c3836", "#fb4934", "#fabd2f",
-                "#141414", false
-            ),
-        ),
-        theme(
-            "rose-pine",
-            "Rosé Pine",
-            palette!(
-                "#191724", "#1f1d2e", "#e0def4", "#6e6a86", "#c4a7e7", "#26233a", "#403d52", "#26233a", "#eb6f92", "#c4a7e7",
-                "#111019", false
-            ),
-        ),
-        theme(
-            "everforest",
-            "Everforest",
-            palette!(
-                "#2d353b", "#272e33", "#d3c6aa", "#859289", "#a7c080", "#3d484d", "#475258", "#3d484d", "#e67e80", "#a7c080",
-                "#1e2326", false
-            ),
-        ),
-        theme(
-            "solarized-dark",
-            "Solarized Dark",
-            palette!(
-                "#002b36", "#00232c", "#93a1a1", "#586e75", "#268bd2", "#073642", "#0f4a56", "#073642", "#dc322f", "#268bd2",
-                "#001e26", false
-            ),
-        ),
-        theme(
-            "kanagawa",
-            "Kanagawa",
-            palette!(
-                "#1f1f28", "#16161d", "#dcd7ba", "#727169", "#7e9cd8", "#2a2a37", "#363646", "#2d4f67", "#e82424", "#7e9cd8",
-                "#0d0c0c", false
-            ),
-        ),
-    ]
-}
-
-#[derive(Deserialize)]
-struct CustomFile {
-    name: String,
-    #[serde(flatten)]
-    palette: Palette,
-}
-
-/// User themes in `~/.config/nixe/themes/*.toml` (for every app) and
-/// `~/.config/<app>/themes/*.toml` (this one; same name wins).
-pub fn custom() -> Vec<Theme> {
-    let mut themes: Vec<Theme> = [paths::suite_dir().join("themes"), paths::custom_themes_dir()]
-        .iter()
-        .filter_map(|dir| std::fs::read_dir(dir).ok())
-        .flat_map(|entries| entries.flatten())
-        .filter(|e| e.path().extension().is_some_and(|x| x == "toml"))
-        .filter_map(|e| {
-            let text = std::fs::read_to_string(e.path()).ok()?;
-            let file: CustomFile = toml::from_str(&text).ok()?;
-            let id = format!("custom:{}", e.path().file_stem()?.to_string_lossy());
-            Some(Theme { id, name: file.name, palette: file.palette })
-        })
-        .collect();
-    // The app's own copy of a theme comes later in the list and wins.
-    let mut seen = std::collections::HashSet::new();
-    themes.reverse();
-    themes.retain(|t| seen.insert(t.id.clone()));
-    themes.sort_by(|a, b| a.name.cmp(&b.name));
-    themes
+    /// Everything beyond the core colours: accents, fonts, radii, material.
+    pub look: Look,
 }
 
 /// Settings every Nixe app shares (`~/.config/nixe/theme.toml`): the theme,
@@ -334,12 +161,6 @@ pub fn update_suite(change: impl FnOnce(&mut Suite)) {
     }
 }
 
-pub fn all() -> Vec<Theme> {
-    let mut themes = bundled();
-    themes.extend(custom());
-    themes
-}
-
 /// Map Omarchy Quattro's `colors.toml` onto the semantic tokens.
 pub fn from_omarchy_colors(text: &str) -> Option<Palette> {
     let table: toml::Table = toml::from_str(text).ok()?;
@@ -372,21 +193,28 @@ pub fn omarchy_available() -> bool {
     omarchy_palette().is_some()
 }
 
-/// The palette that should be showing right now according to the prefs.
-pub fn current_palette() -> Palette {
+/// The theme that should be showing right now according to the prefs. Follow
+/// Omarchy takes Omarchy's colours and gives each app an accent from them.
+pub fn current_theme() -> Theme {
     let prefs = config_prefs();
     if prefs.mode == ThemeMode::Omarchy
-        && let Some(p) = omarchy_palette()
+        && let Ok(text) = std::fs::read_to_string(paths::omarchy_colors())
+        && let Some(palette) = from_omarchy_colors(&text)
     {
-        return p;
+        let mut look = ThemeFile::default().look(&palette, "omarchy");
+        if let Ok(table) = toml::from_str::<toml::Table>(&text) {
+            look.accents = themes::omarchy_accents(&table);
+        }
+        return Theme { id: "omarchy".into(), name: "Omarchy".into(), palette, look };
     }
-    let themes = all();
-    themes
-        .iter()
-        .find(|t| t.id == prefs.theme)
-        .or_else(|| themes.iter().find(|t| t.id == "tokyo-night"))
-        .map(|t| t.palette.clone())
-        .expect("bundled themes are never empty")
+    let mut themes = all();
+    let pick = themes.iter().position(|t| t.id == prefs.theme).or_else(|| themes.iter().position(|t| t.id == "tokyo-night"));
+    themes.swap_remove(pick.expect("bundled themes are never empty"))
+}
+
+/// The palette that should be showing right now according to the prefs.
+pub fn current_palette() -> Palette {
+    current_theme().palette
 }
 
 pub fn palette_css(p: &Palette) -> String {
@@ -477,6 +305,7 @@ thread_local! {
     static STYLE: RefCell<Option<Style>> = const { RefCell::new(None) };
     static PROVIDER: RefCell<Option<gtk::CssProvider>> = const { RefCell::new(None) };
     static ACTIVE: RefCell<Option<Palette>> = const { RefCell::new(None) };
+    static ACTIVE_LOOK: RefCell<Option<Look>> = const { RefCell::new(None) };
     static LISTENERS: RefCell<Vec<(glib::WeakRef<gtk::Widget>, Listener)>> = const { RefCell::new(Vec::new()) };
     static GLOBAL: RefCell<Vec<Listener>> = const { RefCell::new(Vec::new()) };
     /// The theme this app and the suite file last agreed on.
@@ -495,6 +324,22 @@ fn config_prefs() -> ThemePrefs {
 /// The palette currently on screen (cached; graphs read it on every frame).
 pub fn palette() -> Palette {
     ACTIVE.with(|a| a.borrow_mut().get_or_insert_with(current_palette).clone())
+}
+
+/// The look currently on screen: accents, fonts, radii, material (cached).
+pub fn look() -> Look {
+    ACTIVE_LOOK.with(|a| a.borrow_mut().get_or_insert_with(|| current_theme().look).clone())
+}
+
+/// The accent for app `app` (`files`, `mail`, …): the theme's colour for it,
+/// else the theme accent.
+pub fn app_accent(app: &str) -> String {
+    look().accents.get(app).cloned().unwrap_or_else(|| palette().accent)
+}
+
+/// The accent for a section of an app (Settings → Privacy), else the app's.
+pub fn section_accent(app: &str, section: &str) -> String {
+    look().sections.get(app).and_then(|s| s.get(section)).cloned().unwrap_or_else(|| app_accent(app))
 }
 
 /// Call `f` whenever the palette changes, for as long as `owner` lives.
@@ -553,8 +398,9 @@ pub fn apply() {
         });
         SYNCED.with(|s| *s.borrow_mut() = Some(mine));
     }
-    let palette = current_palette();
+    let Theme { palette, look, .. } = current_theme();
     ACTIVE.with(|a| *a.borrow_mut() = Some(palette.clone()));
+    ACTIVE_LOOK.with(|a| *a.borrow_mut() = Some(look.clone()));
     let mut css = palette_css(&palette);
     STYLE.with(|s| {
         if let Some(style) = s.borrow().as_ref() {
@@ -563,6 +409,7 @@ pub fn apply() {
             }
             css.push_str(&base_css(style.window_class, style.base_skip));
             css.push_str(style.css);
+            css.push_str(&look_css(style.window_class, &palette.accent, &look));
             css.push_str(&suite_css(style.window_class, &read_suite().unwrap_or_default()));
             if !prefs.glow {
                 css.push('\n');
@@ -620,11 +467,13 @@ fn stamp() -> Option<(SystemTime, String)> {
 }
 
 /// Omarchy swaps the theme by rewriting its state directory; a light poll is the
-/// most robust way to notice every variant of that.
+/// most robust way to notice every variant of that. The same poll picks up a
+/// saved theme file and the shared settings.
 fn watch_omarchy() {
     let last = RefCell::new(stamp());
     let suite_stamp = || std::fs::metadata(suite_file()).and_then(|m| m.modified()).ok();
     let last_suite = RefCell::new(suite_stamp());
+    let last_themes = RefCell::new(themes_stamp());
     glib::timeout_add_seconds_local(1, move || {
         let now = stamp();
         if now != *last.borrow() {
@@ -645,6 +494,14 @@ fn watch_omarchy() {
                     }
                     SYNCED.with(|s| *s.borrow_mut() = Some(theirs));
                 }
+                apply();
+            }
+        }
+        // A theme file was saved: show the change if a theme (not Omarchy) is in use.
+        let now = themes_stamp();
+        if now != *last_themes.borrow() {
+            *last_themes.borrow_mut() = now;
+            if config_prefs().mode == ThemeMode::Theme {
                 apply();
             }
         }

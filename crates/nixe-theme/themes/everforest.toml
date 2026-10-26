@@ -1,0 +1,13 @@
+name = "Everforest"
+bg = "#2d353b"
+surface = "#272e33"
+text = "#d3c6aa"
+dim_text = "#859289"
+accent = "#a7c080"
+border = "#3d484d"
+muted = "#475258"
+highlight = "#3d484d"
+danger = "#e67e80"
+glow = "#a7c080"
+shadow = "#1e2326"
+light = false

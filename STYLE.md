@@ -180,6 +180,39 @@ light = false
 
 List user themes after the bundled ones, sorted by name, with ids `custom:<file stem>`.
 
+The bundled themes are the same kind of file, kept in `crates/nixe-theme/themes/` and
+built in (`nixe-dark.toml` sets every key and is the template). A theme sets the
+**look**; density, text size and motion are preferences, and sizes and layout stay with
+the apps:
+
+| Keys | What they set |
+| --- | --- |
+| `name`, `light`, `inherits` | Display name, light or dark, the bundled theme to start from |
+| the 11 core colours above | As before; `@theme_*` |
+| `panel`, `card`, `raised`, `popover` | Surfaces: sidebar and header, cards, raised controls, popovers (`@theme_panel`, …) |
+| `text_tertiary`, `divider`, `warning`, `success` | Hint text, lines inside cards, status colours |
+| `hover`, `selection` | How strongly the accent tints hovered and selected rows, 0–1 (`--nixe-hover`, `--nixe-selection`) |
+| `[accents]` | One colour per app (`files = "#5b9cff"`); the app's own is `@theme_app_accent` |
+| `[sections.<app>]` | One colour per section of an app (`[sections.settings]`, `privacy = …`) |
+| `[font]` | `ui`, `mono`, `weight`, `heading_weight`; set only when the theme wants a font |
+| `[shape]` | `radius_small`, `radius_card`, `radius_dialog` in px (`--nixe-radius-*`) |
+| `[material]` | `surface` (`solid` or `frosted`), `see_through`, `blended` |
+| `[icons]` | `pack`: the icon theme it recommends (the user's icon choice still wins) |
+
+Colours a theme leaves out are derived from its core colours; Follow Omarchy takes app
+accents from Omarchy's named colours (Files blue, Mail magenta, …). In code:
+`nixe_theme::look()`, `app_accent(app)`, `section_accent(app, section)`.
+
+Every key is optional:
+
+- A user file named like a bundled theme (`~/.config/nixe/themes/nixe-dark.toml`)
+  overrides it: write only the keys to change, the rest stay as shipped.
+- `inherits = "<bundled id>"` starts a new theme from a bundled one.
+- A missing key, or a value GTK can't read as a colour, falls back (to the overridden
+  or inherited theme, else Tokyo Night) with a warning on stderr.
+- `nixe_theme::edit_copy(id)` writes a full copy to edit if there is none yet.
+- Saving a theme file restyles every open Nixe app within a second.
+
 ### One theme for the suite
 
 The theme (`mode` and `theme`), density, text size and where apps open (`start`) live in
