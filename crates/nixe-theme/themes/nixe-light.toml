@@ -40,6 +40,18 @@ calendar = "#d93a3a"
 music = "#c93a7b"
 home = "#1f9e5c"
 
+# Accent choices offered in each app's settings (same names in every theme)
+[swatches]
+blue = "#2f6fea"
+violet = "#6f4de0"
+pink = "#c93a7b"
+red = "#d93a3a"
+coral = "#d4532f"
+amber = "#b7791f"
+green = "#1f9e5c"
+teal = "#1a8fa0"
+graphite = "#5a5a64"
+
 [sections.settings]
 home = "#1a8fa0"
 connections = "#2f6fea"

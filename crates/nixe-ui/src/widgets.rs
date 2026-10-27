@@ -479,3 +479,60 @@ pub fn start_row() -> gtk::Box {
         |v| nixe_theme::update_suite(|s| s.start = v),
     )
 }
+
+/// "Accent": the app's colour, picked from the active theme's swatches or left
+/// to the theme. Stored by swatch name, so it survives a theme switch.
+pub fn accent_row(app: &'static str) -> gtk::Box {
+    let strip = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    strip.set_valign(gtk::Align::Center);
+    let mut names: Vec<Option<String>> = vec![None];
+    names.extend(nixe_theme::swatches().into_iter().map(|(n, _)| Some(n)));
+    let buttons: Vec<(gtk::Button, gtk::CssProvider, Option<String>)> = names
+        .into_iter()
+        .map(|name| {
+            let b = gtk::Button::new();
+            b.add_css_class("accent-swatch");
+            let tip = match &name {
+                None => "Theme default".to_string(),
+                Some(n) => {
+                    let mut c = n.chars();
+                    c.next().map(|f| f.to_uppercase().collect::<String>() + c.as_str()).unwrap_or_default()
+                }
+            };
+            if name.is_none() {
+                b.add_css_class("theme-default");
+            }
+            b.set_tooltip_text(Some(&tip));
+            b.update_property(&[gtk::accessible::Property::Label(&tip)]);
+            let provider = gtk::CssProvider::new();
+            #[allow(deprecated)]
+            b.style_context().add_provider(&provider, gtk::STYLE_PROVIDER_PRIORITY_USER);
+            let picked = name.clone();
+            b.connect_clicked(move |_| {
+                nixe_theme::set_app_swatch(app, picked.as_deref());
+                nixe_theme::apply();
+            });
+            strip.append(&b);
+            (b, provider, name)
+        })
+        .collect();
+    let refresh = move || {
+        let swatches = nixe_theme::swatches();
+        let current = nixe_theme::app_swatch(app);
+        let default = nixe_theme::look().accents.get(app).cloned().unwrap_or_else(|| nixe_theme::palette().accent);
+        for (b, provider, name) in &buttons {
+            let colour = match name {
+                None => Some(default.clone()),
+                Some(n) => swatches.iter().find(|(s, _)| s == n).map(|(_, c)| c.clone()),
+            };
+            if let Some(c) = colour {
+                provider.load_from_string(&format!("* {{ background: {c}; }}"));
+            }
+            if *name == current { b.add_css_class("selected") } else { b.remove_css_class("selected") }
+        }
+    };
+    refresh();
+    let row = row("Accent", "This app's colour for selection and highlights.", Some(strip.upcast_ref()));
+    nixe_theme::subscribe(&row, refresh);
+    row
+}

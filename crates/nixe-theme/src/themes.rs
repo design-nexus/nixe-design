@@ -37,6 +37,8 @@ pub struct Look {
     pub accents: BTreeMap<String, String>,
     /// Accent per section of an app (`settings` → `privacy` → colour).
     pub sections: BTreeMap<String, BTreeMap<String, String>>,
+    /// The accents offered in each app's settings, by name, in [`SWATCH_NAMES`] order first.
+    pub swatches: Vec<(String, String)>,
     pub font: Font,
     pub shape: Shape,
     pub material: Material,
@@ -97,6 +99,15 @@ pub(crate) fn fallback_palette() -> Palette {
         light: false,
     }
 }
+
+/// Accent names every theme offers, so an app's pick survives a theme switch.
+pub const SWATCH_NAMES: &[&str] = &["blue", "violet", "pink", "red", "coral", "amber", "green", "teal", "graphite"];
+
+/// Swatches for themes that don't define their own, for dark and light backgrounds.
+const DARK_SWATCHES: [&str; 9] =
+    ["#5b9cff", "#9d7bff", "#ff6fae", "#ff6b6b", "#ff7a59", "#f2b545", "#46d08a", "#4cc9d6", "#a3a3ab"];
+const LIGHT_SWATCHES: [&str; 9] =
+    ["#2f6fea", "#6f4de0", "#c93a7b", "#d93a3a", "#d4532f", "#b7791f", "#1f9e5c", "#1a8fa0", "#5a5a64"];
 
 /// The themes Nixe ships. They are the same TOML a user writes, kept as files in
 /// `themes/` and built in, so they never go missing.
@@ -167,6 +178,8 @@ pub(crate) struct ThemeFile {
     accents: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     sections: BTreeMap<String, BTreeMap<String, String>>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    swatches: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "FontFile::is_empty")]
     font: FontFile,
     #[serde(default, skip_serializing_if = "ShapeFile::is_empty")]
@@ -262,6 +275,7 @@ impl ThemeFile {
             panel, card, raised, popover, text_tertiary, divider, warning, success, hover, selection);
         out.inherits = None;
         out.accents.extend(self.accents.clone());
+        out.swatches.extend(self.swatches.clone());
         for (app, sections) in &self.sections {
             out.sections.entry(app.clone()).or_default().extend(sections.clone());
         }
@@ -315,6 +329,7 @@ impl ThemeFile {
             selection: self.selection.unwrap_or(0.18).clamp(0.0, 1.0),
             accents: colors(&self.accents, "accents"),
             sections: self.sections.iter().map(|(app, m)| (app.clone(), colors(m, &format!("sections.{app}")))).collect(),
+            swatches: swatches(&colors(&self.swatches, "swatches"), p.light),
             font: Font {
                 ui: self.font.ui.clone(),
                 mono: self.font.mono.clone(),
@@ -365,6 +380,7 @@ impl ThemeFile {
             selection: Some(l.selection),
             accents: l.accents.clone(),
             sections: l.sections.clone(),
+            swatches: l.swatches.iter().cloned().collect(),
             font: FontFile {
                 ui: l.font.ui.clone(),
                 mono: l.font.mono.clone(),
@@ -408,6 +424,40 @@ pub(crate) fn mix(a: &str, b: &str, t: f64) -> String {
     let (Ok(a), Ok(b)) = (gdk::RGBA::parse(a), gdk::RGBA::parse(b)) else { return a.to_string() };
     let ch = |x: f32, y: f32| ((f64::from(x) + (f64::from(y) - f64::from(x)) * t) * 255.0).round().clamp(0.0, 255.0) as u8;
     format!("#{:02x}{:02x}{:02x}", ch(a.red(), b.red()), ch(a.green(), b.green()), ch(a.blue(), b.blue()))
+}
+
+/// A theme's swatches in [`SWATCH_NAMES`] order, the defaults filling any name it
+/// leaves out, then any extra names it adds.
+fn swatches(own: &BTreeMap<String, String>, light: bool) -> Vec<(String, String)> {
+    let defaults = if light { LIGHT_SWATCHES } else { DARK_SWATCHES };
+    let mut out: Vec<(String, String)> = SWATCH_NAMES
+        .iter()
+        .zip(defaults)
+        .map(|(name, c)| ((*name).to_string(), own.get(*name).cloned().unwrap_or_else(|| c.to_string())))
+        .collect();
+    out.extend(own.iter().filter(|(k, _)| !SWATCH_NAMES.contains(&k.as_str())).map(|(k, v)| (k.clone(), v.clone())));
+    out
+}
+
+/// Swatches from an Omarchy theme's named colours, where it has them.
+pub(crate) fn omarchy_swatches(table: &toml::Table) -> BTreeMap<String, String> {
+    const MAP: &[(&str, &str)] = &[
+        ("blue", "blue"),
+        ("violet", "magenta"),
+        ("pink", "bright_magenta"),
+        ("red", "red"),
+        ("coral", "orange"),
+        ("amber", "yellow"),
+        ("green", "green"),
+        ("teal", "cyan"),
+        ("graphite", "dark_foreground"),
+    ];
+    MAP.iter()
+        .filter_map(|(name, key)| {
+            let c = table.get(*key)?.as_str()?;
+            gdk::RGBA::parse(c).ok().map(|_| ((*name).to_string(), c.to_string()))
+        })
+        .collect()
 }
 
 fn shipped_files() -> Vec<(&'static str, ThemeFile)> {
@@ -537,12 +587,10 @@ pub(crate) fn omarchy_accents(table: &toml::Table) -> BTreeMap<String, String> {
         .collect()
 }
 
-/// The look as CSS for one app: extra colours as `@theme_*`, the app's own
-/// accent as `@theme_app_accent`, radii and tint strengths as `--nixe-*`
-/// properties on its window, and its fonts when the theme sets them.
-pub fn look_css(window_class: &str, accent: &str, look: &Look) -> String {
-    let app = window_class.strip_suffix("-window").unwrap_or(window_class);
-    let app_accent = look.accents.get(app).map_or(accent, String::as_str);
+/// The look as CSS for one app: extra colours as `@theme_*`, the app's accent
+/// as `@theme_app_accent`, radii and tint strengths as `--nixe-*` properties on
+/// its window, and its fonts when the theme sets them.
+pub fn look_css(window_class: &str, app_accent: &str, look: &Look) -> String {
     let mut css = format!(
         "@define-color theme_panel {};\n@define-color theme_card {};\n@define-color theme_raised {};\n\
          @define-color theme_popover {};\n@define-color theme_text_tertiary {};\n@define-color theme_divider {};\n\
@@ -639,6 +687,16 @@ mod tests {
     }
 
     #[test]
+    fn swatches_keep_their_names_across_themes() {
+        for theme in bundled() {
+            let names: Vec<_> = theme.look.swatches.iter().take(SWATCH_NAMES.len()).map(|(n, _)| n.as_str()).collect();
+            assert_eq!(names, SWATCH_NAMES, "{}", theme.id);
+        }
+        let light = bundled().into_iter().find(|t| t.id == "nixe-light").unwrap();
+        assert_eq!(light.look.swatches[0], ("blue".to_string(), "#2f6fea".to_string()));
+    }
+
+    #[test]
     fn unknown_keys_are_rejected() {
         assert!(ThemeFile::parse("acent = \"#ff0000\"", "test").is_none());
     }
@@ -646,7 +704,7 @@ mod tests {
     #[test]
     fn app_accent_and_font_in_css() {
         let t = bundled().into_iter().find(|t| t.id == "nixe-dark").unwrap();
-        let css = look_css("files-window", &t.palette.accent, &t.look);
+        let css = look_css("files-window", &t.look.accents["files"], &t.look);
         assert!(css.contains(&format!("@define-color theme_app_accent {};", t.look.accents["files"])));
         assert!(css.contains("font-family: \"Inter\""));
         let plain = bundled().into_iter().find(|t| t.id == "nord").unwrap();

@@ -11,7 +11,7 @@ use std::cell::RefCell;
 use std::time::SystemTime;
 
 mod themes;
-pub use themes::{Font, Look, Material, Shape, Surface, all, bundled, custom, edit_copy, look_css, theme_dirs};
+pub use themes::{Font, Look, Material, SWATCH_NAMES, Shape, Surface, all, bundled, custom, edit_copy, look_css, theme_dirs};
 use themes::{ThemeFile, themes_stamp};
 
 /// Where the colours come from.
@@ -92,6 +92,8 @@ pub struct Suite {
     pub text_scale: f64,
     /// Where apps open: `home` (their start page) or `last` (the page shown last).
     pub start: String,
+    /// The accent each app was given in its settings, by swatch name (`files = "violet"`).
+    pub app_accents: std::collections::BTreeMap<String, String>,
 }
 
 impl Default for Suite {
@@ -102,6 +104,7 @@ impl Default for Suite {
             density: "comfortable".into(),
             text_scale: 1.0,
             start: "home".into(),
+            app_accents: Default::default(),
         }
     }
 }
@@ -204,6 +207,12 @@ pub fn current_theme() -> Theme {
         let mut look = ThemeFile::default().look(&palette, "omarchy");
         if let Ok(table) = toml::from_str::<toml::Table>(&text) {
             look.accents = themes::omarchy_accents(&table);
+            let own = themes::omarchy_swatches(&table);
+            for (name, c) in &mut look.swatches {
+                if let Some(o) = own.get(name) {
+                    *c = o.clone();
+                }
+            }
         }
         return Theme { id: "omarchy".into(), name: "Omarchy".into(), palette, look };
     }
@@ -331,10 +340,43 @@ pub fn look() -> Look {
     ACTIVE_LOOK.with(|a| a.borrow_mut().get_or_insert_with(|| current_theme().look).clone())
 }
 
-/// The accent for app `app` (`files`, `mail`, …): the theme's colour for it,
-/// else the theme accent.
+/// The accent for app `app` (`files`, `mail`, …): the swatch picked in its
+/// settings, else the theme's colour for it, else the theme accent.
 pub fn app_accent(app: &str) -> String {
-    look().accents.get(app).cloned().unwrap_or_else(|| palette().accent)
+    resolve_app_accent(app, &palette(), &look(), &read_suite().unwrap_or_default())
+}
+
+fn resolve_app_accent(app: &str, palette: &Palette, look: &Look, suite: &Suite) -> String {
+    suite
+        .app_accents
+        .get(app)
+        .and_then(|name| look.swatches.iter().find(|(n, _)| n == name))
+        .map(|(_, c)| c.clone())
+        .or_else(|| look.accents.get(app).cloned())
+        .unwrap_or_else(|| palette.accent.clone())
+}
+
+/// The accents to offer in an app's settings: `(name, colour)` from the active theme.
+pub fn swatches() -> Vec<(String, String)> {
+    look().swatches
+}
+
+/// The swatch picked for `app`, if any (`None` is *Theme default*).
+pub fn app_swatch(app: &str) -> Option<String> {
+    read_suite().and_then(|s| s.app_accents.get(app).cloned())
+}
+
+/// Pick a swatch for `app`, or `None` for the theme default. Every open app
+/// shows the change within a second.
+pub fn set_app_swatch(app: &str, name: Option<&str>) {
+    update_suite(|s| match name {
+        Some(n) => {
+            s.app_accents.insert(app.to_string(), n.to_string());
+        }
+        None => {
+            s.app_accents.remove(app);
+        }
+    });
 }
 
 /// The accent for a section of an app (Settings → Privacy), else the app's.
@@ -409,7 +451,9 @@ pub fn apply() {
             }
             css.push_str(&base_css(style.window_class, style.base_skip));
             css.push_str(style.css);
-            css.push_str(&look_css(style.window_class, &palette.accent, &look));
+            let app = style.window_class.strip_suffix("-window").unwrap_or(style.window_class);
+            let accent = resolve_app_accent(app, &palette, &look, &read_suite().unwrap_or_default());
+            css.push_str(&look_css(style.window_class, &accent, &look));
             css.push_str(&suite_css(style.window_class, &read_suite().unwrap_or_default()));
             if !prefs.glow {
                 css.push('\n');

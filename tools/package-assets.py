@@ -20,7 +20,7 @@ def normalize(info):
 with output.open('wb') as raw, gzip.GzipFile(filename='', fileobj=raw, mode='wb', mtime=0) as compressed:
     with tarfile.open(fileobj=compressed, mode='w') as archive:
         for name in ['STYLE.md', 'LICENSE', 'crates/nixe-icons/apps', 'crates/nixe-icons/make_icons.py',
-                     'crates/nixe-theme/src', 'crates/nixe-ui/src', 'crates/nixe-playback/data',
+                     'crates/nixe-theme/src', 'crates/nixe-theme/themes', 'crates/nixe-ui/src', 'crates/nixe-playback/data',
                      'crates/nixe-playback/src/controls.css']:
             archive.add(root / name, arcname=name, filter=normalize)
 print(output)
