@@ -1,5 +1,5 @@
 //! A container that keeps its child at most `max` pixels wide, centred (or at the
-//! start or end, following the child's `halign`), and lets it shrink below that. GTK4 has no such widget without libadwaita.
+//! start, see [`Clamp::set_start`]), and lets it shrink below that. GTK4 has no such widget without libadwaita.
 
 use gtk::glib;
 use gtk::prelude::*;
@@ -12,6 +12,7 @@ mod imp {
     #[derive(Default)]
     pub struct Clamp {
         pub max: Cell<i32>,
+        pub start: Cell<bool>,
     }
 
     #[glib::object_subclass]
@@ -52,11 +53,7 @@ mod imp {
             if let Some(child) = self.obj().first_child() {
                 let (min, _, _, _) = child.measure(gtk::Orientation::Horizontal, -1);
                 let w = width.min(self.max.get()).max(min.min(width));
-                let x = match child.halign() {
-                    gtk::Align::Start => 0,
-                    gtk::Align::End => width - w,
-                    _ => (width - w) / 2,
-                };
+                let x = if self.start.get() { 0 } else { (width - w) / 2 };
                 child.size_allocate(&gtk::Allocation::new(x, 0, w, height), baseline);
             }
         }
@@ -73,5 +70,11 @@ impl Clamp {
         c.imp().max.set(max);
         child.set_parent(&c);
         c
+    }
+
+    /// Keep the child at the start of the space instead of centring it.
+    pub fn set_start(&self, start: bool) {
+        self.imp().start.set(start);
+        self.queue_allocate();
     }
 }
