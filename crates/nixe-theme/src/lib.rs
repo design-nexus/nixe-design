@@ -290,7 +290,13 @@ pub fn omarchy_available() -> bool {
 /// Omarchy takes Omarchy's colours and gives each app an accent from them.
 pub fn current_theme() -> Theme {
     let prefs = config_prefs();
-    if prefs.mode == ThemeMode::Omarchy
+    theme_for(&prefs.mode, &prefs.theme)
+}
+
+/// The theme `mode` and `id` name: Omarchy's colours when following it (and it
+/// has a theme), else the theme with that id, else Tokyo Night.
+fn theme_for(mode: &ThemeMode, id: &str) -> Theme {
+    if *mode == ThemeMode::Omarchy
         && let Ok(text) = std::fs::read_to_string(paths::omarchy_colors())
         && let Some(palette) = from_omarchy_colors(&text)
     {
@@ -299,8 +305,21 @@ pub fn current_theme() -> Theme {
         return Theme { id: "omarchy".into(), name: "Omarchy".into(), palette, look };
     }
     let mut themes = all();
-    let pick = themes.iter().position(|t| t.id == prefs.theme).or_else(|| themes.iter().position(|t| t.id == "tokyo-night"));
+    let pick = themes.iter().position(|t| t.id == id).or_else(|| themes.iter().position(|t| t.id == "tokyo-night"));
     themes.swap_remove(pick.expect("bundled themes are never empty"))
+}
+
+/// The suite's theme as app `app` shows it in 2.0: the shared choice from
+/// `~/.config/nixe/theme.toml`, with the app's accent (its picked swatch, else
+/// the theme's default for it) as the palette's accent. For apps that run their
+/// own stylesheet machinery instead of [`install`]; poll it to follow changes.
+pub fn suite_theme(app: &str) -> Theme {
+    let suite = read_suite().unwrap_or_default();
+    let mut theme = theme_for(&suite.mode, &suite.theme);
+    let accent = resolve_app_accent(app, &theme.palette, &theme.look, &suite);
+    theme.palette.glow = accent.clone();
+    theme.palette.accent = accent;
+    theme
 }
 
 /// The palette that should be showing right now according to the prefs.

@@ -435,8 +435,11 @@ pub(crate) fn mix(a: &str, b: &str, t: f64) -> String {
 /// A theme's swatches in [`SWATCH_NAMES`] order, the defaults filling any name it
 /// leaves out, then any extra names it adds.
 fn swatches(own: &BTreeMap<String, String>, light: bool) -> Vec<(String, String)> {
-    let own: BTreeMap<String, String> =
-        own.iter().filter(|(k, v)| color("swatches", k, &Some((*v).clone())).is_some()).map(|(k, v)| (k.clone(), v.clone())).collect();
+    let own: BTreeMap<String, String> = own
+        .iter()
+        .filter(|(k, v)| color("swatches", k, &Some((*v).clone())).is_some())
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
     let defaults = if light { LIGHT_SWATCHES } else { DARK_SWATCHES };
     let mut out: Vec<(String, String)> = SWATCH_NAMES
         .iter()
