@@ -164,7 +164,11 @@ entry.settings-search:focus-within,
 window.@APP@ entry.sidebar-search:focus-within,
 window.@APP@ entry.bar-search:focus-within,
 window.@APP@ .search-strip entry:focus-within {
-  border-color: alpha(@theme_accent, 0.6);
+  /* Blended: no ring, the field just brightens while you type in it. */
+  background: alpha(@theme_text, 0.07);
+  border-color: transparent;
+  outline: none;
+  box-shadow: none;
 }
 
 .search-strip {
