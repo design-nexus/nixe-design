@@ -1,22 +1,22 @@
-# Nixe App Style — 2.0
+# Nyx App Style — 2.0
 
-How Nixe apps look and behave. Most of it comes from the shared crates, so an app gets it
+How Nyx apps look and behave. Most of it comes from the shared crates, so an app gets it
 by using them rather than by copying another app:
 
 | Crate | What it gives an app |
 | --- | --- |
-| `nixe-core` | Identity, XDG paths, preferences store, commands, atomic writes |
-| `nixe-theme` | Theme files, Follow Omarchy, the suite settings, the shared stylesheet |
-| `nixe-ui` | Window frame and header, sidebar, rows, cards, controls, dialogs, palette, keys |
-| `nixe-icons` | App icons and symbolic header icons |
+| `nyx-core` | Identity, XDG paths, preferences store, commands, atomic writes |
+| `nyx-theme` | Theme files, Follow Omarchy, the suite settings, the shared stylesheet |
+| `nyx-ui` | Window frame and header, sidebar, rows, cards, controls, dialogs, palette, keys |
+| `nyx-icons` | App icons and symbolic header icons |
 
 Apps move to 2.0 one at a time. Until an app has moved it follows
 [docs/STYLE-v1.md](docs/STYLE-v1.md). An app moves by calling
-`nixe_theme::use_design_2()` before `nixe_theme::install`: the 2.0 sheet
-(`crates/nixe-theme/src/base2.css`) then loads on top of the shared one, the app's own
+`nyx_theme::use_design_2()` before `nyx_theme::install`: the 2.0 sheet
+(`crates/nyx-theme/src/base2.css`) then loads on top of the shared one, the app's own
 accent becomes `@theme_accent`, and sizes follow the 2.0 density table. Check that GTK
-accepts the sheets with `cargo run -p nixe-theme --example check_css`. The mockups this guide comes from are the
-*Nixe Design 2.0* canvas (Files, Notes, Settings, Photos, Mail, Calendar, Icons).
+accepts the sheets with `cargo run -p nyx-theme --example check_css`. The mockups this guide comes from are the
+*Nyx Design 2.0* canvas (Files, Notes, Settings, Photos, Mail, Calendar, Icons).
 
 ---
 
@@ -46,16 +46,16 @@ accepts the sheets with `cargo run -p nixe-theme --example check_css`. The mocku
 A theme is one TOML file. Every key is optional; what a file leaves out comes from the
 theme it overrides or `inherits`, or is derived from its core colours.
 
-- **Shipped themes** live in `crates/nixe-theme/themes/` and are built in.
-  `nixe-dark.toml` sets every key and is the template. Default themes: **Nixe Dark** and
-  **Nixe Light**.
-- **User themes** go in `~/.config/nixe/themes/` (every app) or
+- **Shipped themes** live in `crates/nyx-theme/themes/` and are built in.
+  `nyx-dark.toml` sets every key and is the template. Default themes: **Nyx Dark** and
+  **Nyx Light**.
+- **User themes** go in `~/.config/nyx/themes/` (every app) or
   `~/.config/<app>/themes/` (one app). A file named like a shipped theme overrides it
   with only the keys it sets; any other name is a new theme, `custom:<file stem>`.
-- **Live:** saving a theme file restyles every open Nixe app within a second.
+- **Live:** saving a theme file restyles every open Nyx app within a second.
 - **Safe:** an unknown key rejects the file (with the error on stderr); a value that
   isn't a colour falls back with a warning. An app always starts.
-- `nixe_theme::edit_copy(id)` writes a full copy of a theme to edit.
+- `nyx_theme::edit_copy(id)` writes a full copy of a theme to edit.
 
 ### What a theme sets
 
@@ -71,12 +71,12 @@ theme it overrides or `inherits`, or is derived from its core colours.
 | `accent` | The theme accent, used when an app has none | `@theme_accent` |
 | `danger`, `warning`, `success` | Status colours | `@theme_danger`, … |
 | `muted`, `highlight`, `glow`, `shadow` | Neutral fills, spare selection tone, kept for v1, shadows | |
-| `hover`, `selection` | Accent strength on hovered and selected rows, 0–1 | `--nixe-hover`, `--nixe-selection` |
+| `hover`, `selection` | Accent strength on hovered and selected rows, 0–1 | `--nyx-hover`, `--nyx-selection` |
 | `[accents]` | Default accent per app: a swatch name or a colour (`files = "blue"`) | `@theme_app_accent` |
 | `[sections.<app>]` | Accent per section of an app, a swatch name or a colour (`[sections.settings] privacy = "green"`) | `.section-<name>` |
 | `[swatches]` | Named accent choices offered in each app's settings (see below) | |
 | `[font]` | `ui`, `mono` (each a comma-separated list of names, preferred first: `"Inter, Inter Variable, Inter 18pt"`), `weight`, `heading_weight` | `font-family` on the window |
-| `[shape]` | `radius_small`, `radius_card`, `radius_dialog` (px) | `--nixe-radius-*` |
+| `[shape]` | `radius_small`, `radius_card`, `radius_dialog` (px) | `--nyx-radius-*` |
 | `[material]` | `surface` (`solid` / `frosted`), `see_through`, `blended` | |
 | `[icons]` | `pack`: the icon theme it recommends; `file_colors`: file-type icons keep their brand colours (`brand`, the default) or take the theme's (`theme`) | |
 | `[syntax]` | Code colours: `keyword`, `string`, `constant`, `type`, `preprocessor` (swatch names or colours; Follow Omarchy maps them from Omarchy's named colours) | |
@@ -88,13 +88,13 @@ suite preferences, motion follows Reduce motion, and layout belongs to the apps.
 
 - Each app has an **Accent** row in its settings: the active theme's `[swatches]` plus
   *Theme default* (the theme's `[accents]` entry for the app, else `accent`).
-- The choice is stored **by swatch name** in `~/.config/nixe/theme.toml`
+- The choice is stored **by swatch name** in `~/.config/nyx/theme.toml`
   (`[app_accents] files = "violet"`), so it survives a theme switch: every theme defines
-  the same names, tuned for its background (Nixe Light's are deeper).
+  the same names, tuned for its background (Nyx Light's are deeper).
 - Swatch names: `blue`, `violet`, `pink`, `red`, `coral`, `amber`, `green`, `teal`,
   `graphite`.
 - Sections (Settings) use `[sections.<app>]`; a section without one uses the app's accent.
-- In code: `nixe_theme::app_accent(app)`, `section_accent(app, section)`, `swatches()`.
+- In code: `nyx_theme::app_accent(app)`, `section_accent(app, section)`, `swatches()`.
 
 ### Follow Omarchy
 
@@ -103,11 +103,11 @@ The default mode. Read `~/.local/state/omarchy/current/theme/colors.toml` (respe
 App defaults come from Omarchy's named colours (Files `blue`, Mail `magenta`, Notes
 `yellow`, Photos `orange`, Calendar `red`, Home `green`, …) and the swatches from its
 palette. Omarchy's theme is polled once a second and restyles in place. If
-`colors.toml` is missing or invalid, use the chosen Nixe theme.
+`colors.toml` is missing or invalid, use the chosen Nyx theme.
 
 ### Suite settings
 
-`~/.config/nixe/theme.toml` holds what every app shares: `mode` (`omarchy` / `theme`),
+`~/.config/nyx/theme.toml` holds what every app shares: `mode` (`omarchy` / `theme`),
 `theme`, `density`, `text_scale` (0.9–1.25), `start` (`home` / `last`) and
 `[app_accents]`. Changing any of it in one app reaches every open app within a second.
 
@@ -115,7 +115,7 @@ palette. Omarchy's theme is polled once a second and restyles in place. If
 
 ## 3. Typography
 
-- **Font:** the theme's `[font] ui` — Inter in Nixe Dark and Light, with `sans-serif`
+- **Font:** the theme's `[font] ui` — Inter in Nyx Dark and Light, with `sans-serif`
   as fallback. Code and readouts that need alignment use `[font] mono` (JetBrains Mono).
   Numbers that line up use tabular figures (`font-feature-settings: "tnum"`).
 - **Weights:** 400 regular, 500 for row titles and emphasis, 600 for titles. Nothing bolder.
@@ -166,8 +166,8 @@ Density is a suite preference; **Balanced** is the default.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ ▣ Files  ‹ ›  ken › Projects › nixe-design      [⌕ Search  Ctrl F] ☰ ▦ ◉ ⋯ │ header 46
-│ ⌂ Recent          nixe-design ×  Downloads ×  +                           │
+│ ▣ Files  ‹ ›  ken › Projects › nyx-design      [⌕ Search  Ctrl F] ☰ ▦ ◉ ⋯ │ header 46
+│ ⌂ Recent          nyx-design ×  Downloads ×  +                           │
 │ ★ Starred         Name ▾                     Size   Modified     Kind     │
 │ ▌Projects ◀──     ▌README.md                 4.8 KB Today 13:40  Markdown │
 │ DEVICES           …                                                       │
@@ -214,7 +214,7 @@ Pick the archetype that fits; don't force an app into another's layout.
   thin line of it (35%), and in the icon-only sidebar the divider where the label was is a
   short bar in that colour. Groups without a section colour stay `text_tertiary`.
 - **Selected:** a pill in `mix(bg, app accent, selection)` with a 2 px accent bar at the
-  left edge and the icon in the accent. Hover: the `--nixe-hover` tint.
+  left edge and the icon in the accent. Hover: the `--nyx-hover` tint.
 - Collapses to 56 px icons below 980 px window width or with <kbd>Ctrl</kbd>+<kbd>B</kbd>
   (saved as `sidebar_collapsed`); labels, counts and group labels hide, tooltips stay.
   Tree sidebars (Notes, Calendar) hide entirely instead.

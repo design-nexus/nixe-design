@@ -1,7 +1,7 @@
 # Design
 
 Canonical [STYLE.md](STYLE.md), GTK widgets, themes/CSS, icons, and shared playback.
-Crates: nixe-theme, nixe-ui, nixe-icons, nixe-playback.
+Crates: nyx-theme, nyx-ui, nyx-icons, nyx-playback.
 
 Check: `cargo check --locked --workspace`. Assets: `python3 tools/package-assets.py`.
 
