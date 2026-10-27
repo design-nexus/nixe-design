@@ -735,7 +735,7 @@ pub fn look_css(window_class: &str, app_accent: &str, look: &Look) -> String {
         look.shape.radius_small, look.shape.radius_card, look.shape.radius_dialog, look.hover, look.selection,
     ));
     if let Some(ui) = &look.font.ui {
-        css.push_str(&format!(" font-family: \"{}\", sans-serif;", ui.replace('"', "")));
+        css.push_str(&format!(" font-family: {}, sans-serif;", font_stack(ui)));
     }
     if let Some(weight) = look.font.weight {
         css.push_str(&format!(" font-weight: {weight};"));
@@ -754,11 +754,24 @@ pub fn look_css(window_class: &str, app_accent: &str, look: &Look) -> String {
     }
     if let Some(mono) = &look.font.mono {
         css.push_str(&format!(
-            "window.{window_class} .monospace, window.{window_class} .mono, window.{window_class} .code-block {{ font-family: \"{}\", monospace; }}\n",
-            mono.replace('"', "")
+            "window.{window_class} .monospace, window.{window_class} .mono, window.{window_class} .code-block {{ font-family: {}, monospace; }}\n",
+            font_stack(mono)
         ));
     }
     css
+}
+
+/// A theme's font names, comma-separated with the preferred first (the same
+/// family is installed under different names: "Inter", "Inter Variable",
+/// Google's static "Inter 18pt"), as quoted CSS families.
+fn font_stack(names: &str) -> String {
+    names
+        .split(',')
+        .map(|n| n.trim().replace(['"', '\\'], ""))
+        .filter(|n| !n.is_empty())
+        .map(|n| format!("\"{n}\""))
+        .collect::<Vec<_>>()
+        .join(", ")
 }
 
 #[cfg(test)]
@@ -836,7 +849,7 @@ mod tests {
         let table: toml::Table = toml::from_str("blue = \"#89b4fa\"\nmagenta = \"#f5c2e7\"").unwrap();
         let look = omarchy_look(&fallback_palette(), &table);
         assert!(look.material.blended);
-        assert_eq!(look.font.ui.as_deref(), Some("Inter"));
+        assert!(look.font.ui.as_deref().is_some_and(|f| f.starts_with("Inter")));
         assert_eq!(look.accents["files"], "#89b4fa");
         assert!(look.swatches.iter().any(|(n, c)| n == "violet" && c == "#f5c2e7"));
     }
@@ -877,7 +890,7 @@ mod tests {
         let t = bundled().into_iter().find(|t| t.id == "nixe-dark").unwrap();
         let css = look_css("files-window", &t.look.accents["files"], &t.look);
         assert!(css.contains(&format!("@define-color theme_app_accent {};", t.look.accents["files"])));
-        assert!(css.contains("font-family: \"Inter\""));
+        assert!(css.contains("font-family: \"Inter\", \"Inter Variable\", \"Inter 18pt\", sans-serif;"));
         let plain = bundled().into_iter().find(|t| t.id == "nord").unwrap();
         assert!(!look_css("files-window", &plain.palette.accent, &plain.look).contains("font-family"));
     }

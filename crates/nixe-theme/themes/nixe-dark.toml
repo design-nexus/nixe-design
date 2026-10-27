@@ -64,8 +64,9 @@ accounts = "green"
 assistant = "teal"
 system = "red"
 
+# Font names, preferred first: Inter goes by different names depending on how it was installed
 [font]
-ui = "Inter"
+ui = "Inter, Inter Variable, Inter 18pt"
 mono = "JetBrains Mono"
 weight = 400
 heading_weight = 600

@@ -75,7 +75,7 @@ theme it overrides or `inherits`, or is derived from its core colours.
 | `[accents]` | Default accent per app: a swatch name or a colour (`files = "blue"`) | `@theme_app_accent` |
 | `[sections.<app>]` | Accent per section of an app, a swatch name or a colour (`[sections.settings] privacy = "green"`) | `.section-<name>` |
 | `[swatches]` | Named accent choices offered in each app's settings (see below) | |
-| `[font]` | `ui`, `mono`, `weight`, `heading_weight` | `font-family` on the window |
+| `[font]` | `ui`, `mono` (each a comma-separated list of names, preferred first: `"Inter, Inter Variable, Inter 18pt"`), `weight`, `heading_weight` | `font-family` on the window |
 | `[shape]` | `radius_small`, `radius_card`, `radius_dialog` (px) | `--nixe-radius-*` |
 | `[material]` | `surface` (`solid` / `frosted`), `see_through`, `blended` | |
 | `[icons]` | `pack`: the icon theme it recommends; `file_colors`: file-type icons keep their brand colours (`brand`, the default) or take the theme's (`theme`) | |
