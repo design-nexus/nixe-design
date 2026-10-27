@@ -433,12 +433,28 @@ thread_local! {
 }
 
 fn config_prefs() -> ThemePrefs {
-    let mut prefs = STYLE.with(|s| s.borrow().as_ref().map(|s| (s.prefs)())).unwrap_or(ThemePrefs {
+    let prefs = STYLE.with(|s| s.borrow().as_ref().map(|s| (s.prefs)())).unwrap_or(ThemePrefs {
         mode: ThemeMode::Omarchy,
         theme: "tokyo-night".into(),
         glow: true,
         reduce_motion: false,
     });
+    effective_prefs(prefs, read_suite().as_ref(), shares_theme())
+}
+
+/// Whether this app stores the suite's theme in its own preferences, and so
+/// may also change it for every app.
+fn shares_theme() -> bool {
+    STYLE.with(|s| s.borrow().as_ref().is_some_and(|s| s.set_theme.is_some()))
+}
+
+/// The theme an app shows. An app that can't store a theme choice shows the
+/// suite's, whatever its own preferences say.
+fn effective_prefs(mut prefs: ThemePrefs, suite: Option<&Suite>, shares: bool) -> ThemePrefs {
+    if !shares && let Some(suite) = suite {
+        prefs.mode = suite.mode.clone();
+        prefs.theme = suite.theme.clone();
+    }
     prefs.theme = themes::current_id(&prefs.theme).to_owned();
     prefs
 }
@@ -535,7 +551,7 @@ pub fn install(style: Style) {
     // Start with the suite's theme if another app has chosen one.
     let mine = {
         let p = (style.prefs)();
-        (p.mode, p.theme)
+        (p.mode, themes::current_id(&p.theme).to_owned())
     };
     let synced = match read_suite() {
         Some(suite) if (suite.mode.clone(), suite.theme.clone()) != mine => {
@@ -545,6 +561,8 @@ pub fn install(style: Style) {
             (suite.mode, suite.theme)
         }
         Some(_) => mine,
+        // Only an app that stores a theme choice may start the shared file.
+        None if style.set_theme.is_none() => mine,
         None => {
             update_suite(|s| {
                 s.mode = mine.0.clone();
@@ -567,9 +585,10 @@ pub fn install(style: Style) {
 /// one sheet so every `@theme_*` reference resolves against the new colours.
 pub fn apply() {
     let prefs = config_prefs();
-    // A theme chosen in this app goes to every app.
+    // A theme chosen in this app goes to every app. An app that can't store a
+    // choice only follows the suite's, never writes its own back.
     let mine = (prefs.mode.clone(), prefs.theme.clone());
-    if SYNCED.with(|s| s.borrow().as_ref() != Some(&mine)) {
+    if shares_theme() && SYNCED.with(|s| s.borrow().as_ref() != Some(&mine)) {
         update_suite(|s| {
             s.mode = mine.0.clone();
             s.theme = mine.1.clone();
@@ -765,6 +784,22 @@ impl Rgb {
 
 #[cfg(test)]
 mod tests {
+    fn prefs(mode: ThemeMode, theme: &str) -> ThemePrefs {
+        ThemePrefs { mode, theme: theme.into(), glow: true, reduce_motion: false }
+    }
+
+    #[test]
+    fn an_app_without_a_theme_choice_shows_the_suites() {
+        let suite = Suite { mode: ThemeMode::Theme, theme: "nord".into(), ..Suite::default() };
+        let shown = effective_prefs(prefs(ThemeMode::Omarchy, ""), Some(&suite), false);
+        assert_eq!((shown.mode, shown.theme.as_str()), (ThemeMode::Theme, "nord"));
+        // An app that stores its choice shows its own until it syncs.
+        let own = effective_prefs(prefs(ThemeMode::Omarchy, ""), Some(&suite), true);
+        assert_eq!(own.mode, ThemeMode::Omarchy);
+        // Without a shared file, the app's own preferences apply.
+        let alone = effective_prefs(prefs(ThemeMode::Theme, "nixe-dark"), None, false);
+        assert_eq!(alone.theme, "nyx-dark");
+    }
     use super::*;
 
     #[test]
