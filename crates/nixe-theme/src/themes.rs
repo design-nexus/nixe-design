@@ -311,9 +311,15 @@ impl ThemeFile {
     /// The rest of the look; what the file leaves out is derived from `p`.
     pub(crate) fn look(&self, p: &Palette, origin: &str) -> Look {
         let pick = |key: &str, value: &Option<String>, derived: String| color(origin, key, value).unwrap_or(derived);
+        let swatches = swatches(&self.swatches, p.light);
+        // Accents may name a swatch (`files = "blue"`), so they follow the theme's
+        // own version of that colour, Omarchy's included.
         let colors = |map: &BTreeMap<String, String>, scope: &str| -> BTreeMap<String, String> {
             map.iter()
-                .filter_map(|(k, v)| color(origin, &format!("{scope}.{k}"), &Some(v.clone())).map(|c| (k.clone(), c)))
+                .filter_map(|(k, v)| {
+                    let named = swatches.iter().find(|(n, _)| n == v).map(|(_, c)| c.clone());
+                    named.or_else(|| color(origin, &format!("{scope}.{k}"), &Some(v.clone()))).map(|c| (k.clone(), c))
+                })
                 .collect()
         };
         Look {
@@ -329,7 +335,7 @@ impl ThemeFile {
             selection: self.selection.unwrap_or(0.18).clamp(0.0, 1.0),
             accents: colors(&self.accents, "accents"),
             sections: self.sections.iter().map(|(app, m)| (app.clone(), colors(m, &format!("sections.{app}")))).collect(),
-            swatches: swatches(&colors(&self.swatches, "swatches"), p.light),
+            swatches,
             font: Font {
                 ui: self.font.ui.clone(),
                 mono: self.font.mono.clone(),
@@ -429,6 +435,8 @@ pub(crate) fn mix(a: &str, b: &str, t: f64) -> String {
 /// A theme's swatches in [`SWATCH_NAMES`] order, the defaults filling any name it
 /// leaves out, then any extra names it adds.
 fn swatches(own: &BTreeMap<String, String>, light: bool) -> Vec<(String, String)> {
+    let own: BTreeMap<String, String> =
+        own.iter().filter(|(k, v)| color("swatches", k, &Some((*v).clone())).is_some()).map(|(k, v)| (k.clone(), v.clone())).collect();
     let defaults = if light { LIGHT_SWATCHES } else { DARK_SWATCHES };
     let mut out: Vec<(String, String)> = SWATCH_NAMES
         .iter()
@@ -570,9 +578,14 @@ pub(crate) fn themes_stamp() -> Vec<(PathBuf, Option<SystemTime>)> {
 pub(crate) fn omarchy_look(palette: &Palette, table: &toml::Table) -> Look {
     let id = if palette.light { "nixe-light" } else { "nixe-dark" };
     let nixe = shipped_files().into_iter().find(|(s, _)| *s == id).map(|(_, f)| f).unwrap_or_default();
+    let mut swatches = nixe.swatches.clone();
+    swatches.extend(omarchy_swatches(table));
     let file = ThemeFile {
         hover: nixe.hover,
         selection: nixe.selection,
+        accents: nixe.accents,
+        sections: nixe.sections,
+        swatches,
         font: nixe.font,
         shape: nixe.shape,
         material: nixe.material,
@@ -580,12 +593,8 @@ pub(crate) fn omarchy_look(palette: &Palette, table: &toml::Table) -> Look {
         ..ThemeFile::default()
     };
     let mut look = file.look(palette, "omarchy");
-    look.accents = omarchy_accents(table);
-    let own = omarchy_swatches(table);
-    for (name, c) in &mut look.swatches {
-        if let Some(o) = own.get(name) {
-            *c = o.clone();
-        }
+    for (app, c) in omarchy_accents(table) {
+        look.accents.entry(app).or_insert(c);
     }
     look
 }
@@ -643,6 +652,17 @@ pub fn look_css(window_class: &str, app_accent: &str, look: &Look) -> String {
         css.push_str(&format!(" font-weight: {weight};"));
     }
     css.push_str(" }\n");
+    // Each section's colour on what carries its class (`.section-network`): the
+    // sidebar's group heading, its line, and the divider of the icon-only sidebar.
+    let app = window_class.strip_suffix("-window").unwrap_or(window_class);
+    for (name, c) in look.sections.get(app).into_iter().flatten() {
+        let name: String = name.chars().filter(|ch| ch.is_ascii_alphanumeric() || *ch == '-').collect();
+        css.push_str(&format!(
+            "window.{window_class} .section-{name} {{ color: {c}; }}\n\
+             window.{window_class} .nav-group.section-{name} {{ border-bottom-color: alpha({c}, 0.35); }}\n\
+             window.{window_class} separator.nav-divider.section-{name} {{ background: alpha({c}, 0.6); }}\n"
+        ));
+    }
     if let Some(mono) = &look.font.mono {
         css.push_str(&format!(
             "window.{window_class} .monospace, window.{window_class} .mono, window.{window_class} .code-block {{ font-family: \"{}\", monospace; }}\n",
@@ -730,6 +750,18 @@ mod tests {
         assert_eq!(look.font.ui.as_deref(), Some("Inter"));
         assert_eq!(look.accents["files"], "#89b4fa");
         assert!(look.swatches.iter().any(|(n, c)| n == "violet" && c == "#f5c2e7"));
+    }
+
+    #[test]
+    fn section_accents_name_swatches() {
+        let dark = bundled().into_iter().find(|t| t.id == "nixe-dark").unwrap();
+        let blue = dark.look.swatches.iter().find(|(n, _)| n == "blue").unwrap().1.clone();
+        assert_eq!(dark.look.sections["settings"]["connections"], blue);
+        let css = look_css("settings-window", &blue, &dark.look);
+        assert!(css.contains(".nav-group.section-connections { border-bottom-color: alpha("));
+        let table: toml::Table = toml::from_str("blue = \"#89b4fa\"").unwrap();
+        let omarchy = omarchy_look(&fallback_palette(), &table);
+        assert_eq!(omarchy.sections["settings"]["connections"], "#89b4fa");
     }
 
     #[test]

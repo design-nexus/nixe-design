@@ -30,15 +30,16 @@ success = "#46d08a"
 hover = 0.06
 selection = 0.16
 
-# Placeholder app accents; not final
+# Default accent per app and per section: a swatch name or a colour.
+# Placeholders; each app's Accent row lets the user pick
 [accents]
-files = "#5b9cff"
-notes = "#f2b545"
-photos = "#ff7a59"
-mail = "#9d7bff"
-calendar = "#ff6b6b"
-music = "#ff6fae"
-home = "#46d08a"
+files = "blue"
+notes = "amber"
+photos = "coral"
+mail = "violet"
+calendar = "red"
+music = "pink"
+home = "green"
 
 # Accent choices offered in each app's settings (same names in every theme)
 [swatches]
@@ -53,15 +54,15 @@ teal = "#4cc9d6"
 graphite = "#a3a3ab"
 
 [sections.settings]
-home = "#5cc8d8"
-connections = "#5b9cff"
-hardware = "#f2b545"
-personalization = "#9d7bff"
-desktop = "#ff6fae"
-input = "#ff7a59"
-accounts = "#46d08a"
-assistant = "#4cc9d6"
-system = "#ff9f43"
+home = "teal"
+connections = "blue"
+hardware = "amber"
+personalization = "violet"
+desktop = "pink"
+input = "coral"
+accounts = "green"
+assistant = "teal"
+system = "red"
 
 [font]
 ui = "Inter"

@@ -87,10 +87,13 @@ window.@APP@ .app-header .window-controls button {
   padding: 8px;
 }
 
+/* A group's heading: its section's colour (set by the theme on `.section-<name>`)
+ * over a thin line in the same colour, so groups read as groups. */
 .settings-navigation .nav-group {
-  margin: 10px 0 2px;
-  padding: 4px 10px 6px;
+  margin: 14px 4px 4px;
+  padding: 2px 6px 5px;
   border-top: none;
+  border-bottom: 1px solid transparent;
   font-size: 0.846em;
   font-weight: 600;
   letter-spacing: 0.06em;

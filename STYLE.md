@@ -72,8 +72,8 @@ theme it overrides or `inherits`, or is derived from its core colours.
 | `danger`, `warning`, `success` | Status colours | `@theme_danger`, … |
 | `muted`, `highlight`, `glow`, `shadow` | Neutral fills, spare selection tone, kept for v1, shadows | |
 | `hover`, `selection` | Accent strength on hovered and selected rows, 0–1 | `--nixe-hover`, `--nixe-selection` |
-| `[accents]` | Default accent per app (`files = "#5b9cff"`) | `@theme_app_accent` |
-| `[sections.<app>]` | Accent per section of an app (`[sections.settings] privacy = …`) | |
+| `[accents]` | Default accent per app: a swatch name or a colour (`files = "blue"`) | `@theme_app_accent` |
+| `[sections.<app>]` | Accent per section of an app, a swatch name or a colour (`[sections.settings] privacy = "green"`) | `.section-<name>` |
 | `[swatches]` | Named accent choices offered in each app's settings (see below) | |
 | `[font]` | `ui`, `mono`, `weight`, `heading_weight` | `font-family` on the window |
 | `[shape]` | `radius_small`, `radius_card`, `radius_dialog` (px) | `--nixe-radius-*` |
@@ -208,7 +208,10 @@ Pick the archetype that fits; don't force an app into another's layout.
 
 - 212 px, `bg` (blended), no line beside it. Rows are nav items: icon (17 px), label,
   optional count in `text_tertiary` or a badge (accent tint) for unread.
-- Group labels: small UPPERCASE `text_tertiary`, 14 px above, optional `+` at the right.
+- Group labels: small UPPERCASE, 14 px above, optional `+` at the right. A group that is a
+  section of the app carries `.section-<name>`: its label takes the section's colour over a
+  thin line of it (35%), and in the icon-only sidebar the divider where the label was is a
+  short bar in that colour. Groups without a section colour stay `text_tertiary`.
 - **Selected:** a pill in `mix(bg, app accent, selection)` with a 2 px accent bar at the
   left edge and the icon in the accent. Hover: the `--nixe-hover` tint.
 - Collapses to 56 px icons below 980 px window width or with <kbd>Ctrl</kbd>+<kbd>B</kbd>
