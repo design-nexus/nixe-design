@@ -78,7 +78,8 @@ theme it overrides or `inherits`, or is derived from its core colours.
 | `[font]` | `ui`, `mono`, `weight`, `heading_weight` | `font-family` on the window |
 | `[shape]` | `radius_small`, `radius_card`, `radius_dialog` (px) | `--nixe-radius-*` |
 | `[material]` | `surface` (`solid` / `frosted`), `see_through`, `blended` | |
-| `[icons]` | `pack`: the icon theme it recommends | |
+| `[icons]` | `pack`: the icon theme it recommends; `file_colors`: file-type icons keep their brand colours (`brand`, the default) or take the theme's (`theme`) | |
+| `[syntax]` | Code colours: `keyword`, `string`, `constant`, `type`, `preprocessor` (swatch names or colours; Follow Omarchy maps them from Omarchy's named colours) | |
 
 Sizes, density, text size and motion are **not** theme keys: density and text size are
 suite preferences, motion follows Reduce motion, and layout belongs to the apps.

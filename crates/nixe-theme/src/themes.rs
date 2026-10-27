@@ -44,6 +44,29 @@ pub struct Look {
     pub material: Material,
     /// Icon pack the theme recommends; the icon theme stays the user's choice.
     pub icons: Option<String>,
+    /// Whether file-type icons keep their brand colours or take the theme's.
+    pub file_icon_colors: FileIconColors,
+    /// Colours for code; `None` leaves an app to derive its own.
+    pub syntax: Syntax,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum FileIconColors {
+    /// Logos and file types keep their own colours.
+    #[default]
+    Brand,
+    /// File-type icons are drawn in the theme's colours.
+    Theme,
+}
+
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Syntax {
+    pub keyword: Option<String>,
+    pub string: Option<String>,
+    pub constant: Option<String>,
+    pub type_name: Option<String>,
+    pub preprocessor: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -188,6 +211,23 @@ pub(crate) struct ThemeFile {
     material: MaterialFile,
     #[serde(default, skip_serializing_if = "IconsFile::is_empty")]
     icons: IconsFile,
+    #[serde(default, skip_serializing_if = "SyntaxFile::is_empty")]
+    syntax: SyntaxFile,
+}
+
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct SyntaxFile {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    keyword: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    string: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    constant: Option<String>,
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    type_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    preprocessor: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -230,6 +270,8 @@ struct MaterialFile {
 struct IconsFile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pack: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    file_colors: Option<FileIconColors>,
 }
 
 /// `top`'s values over `base`'s, field by field (and key by key in tables).
@@ -259,7 +301,17 @@ impl MaterialFile {
 
 impl IconsFile {
     fn is_empty(&self) -> bool {
-        self.pack.is_none()
+        self.pack.is_none() && self.file_colors.is_none()
+    }
+}
+
+impl SyntaxFile {
+    fn is_empty(&self) -> bool {
+        self.keyword.is_none()
+            && self.string.is_none()
+            && self.constant.is_none()
+            && self.type_name.is_none()
+            && self.preprocessor.is_none()
     }
 }
 
@@ -282,7 +334,8 @@ impl ThemeFile {
         layer!(out.font, self.font; ui, mono, weight, heading_weight);
         layer!(out.shape, self.shape; radius_small, radius_card, radius_dialog);
         layer!(out.material, self.material; surface, see_through, blended);
-        layer!(out.icons, self.icons; pack);
+        layer!(out.icons, self.icons; pack, file_colors);
+        layer!(out.syntax, self.syntax; keyword, string, constant, type_name, preprocessor);
         out
     }
 
@@ -335,7 +388,7 @@ impl ThemeFile {
             selection: self.selection.unwrap_or(0.18).clamp(0.0, 1.0),
             accents: colors(&self.accents, "accents"),
             sections: self.sections.iter().map(|(app, m)| (app.clone(), colors(m, &format!("sections.{app}")))).collect(),
-            swatches,
+            swatches: swatches.clone(),
             font: Font {
                 ui: self.font.ui.clone(),
                 mono: self.font.mono.clone(),
@@ -353,6 +406,19 @@ impl ThemeFile {
                 blended: self.material.blended.unwrap_or(false),
             },
             icons: self.icons.pack.clone(),
+            file_icon_colors: self.icons.file_colors.unwrap_or_default(),
+            syntax: {
+                let one = |key: &str, v: &Option<String>| {
+                    v.as_ref().and_then(|v| colors(&BTreeMap::from([(key.to_string(), v.clone())]), "syntax").remove(key))
+                };
+                Syntax {
+                    keyword: one("keyword", &self.syntax.keyword),
+                    string: one("string", &self.syntax.string),
+                    constant: one("constant", &self.syntax.constant),
+                    type_name: one("type", &self.syntax.type_name),
+                    preprocessor: one("preprocessor", &self.syntax.preprocessor),
+                }
+            },
         }
     }
 
@@ -403,7 +469,14 @@ impl ThemeFile {
                 see_through: Some(l.material.see_through),
                 blended: Some(l.material.blended),
             },
-            icons: IconsFile { pack: l.icons.clone() },
+            icons: IconsFile { pack: l.icons.clone(), file_colors: Some(l.file_icon_colors) },
+            syntax: SyntaxFile {
+                keyword: l.syntax.keyword.clone(),
+                string: l.syntax.string.clone(),
+                constant: l.syntax.constant.clone(),
+                type_name: l.syntax.type_name.clone(),
+                preprocessor: l.syntax.preprocessor.clone(),
+            },
         }
     }
 
@@ -593,6 +666,7 @@ pub(crate) fn omarchy_look(palette: &Palette, table: &toml::Table) -> Look {
         shape: nixe.shape,
         material: nixe.material,
         icons: nixe.icons,
+        syntax: omarchy_syntax(table),
         ..ThemeFile::default()
     };
     let mut look = file.look(palette, "omarchy");
@@ -600,6 +674,18 @@ pub(crate) fn omarchy_look(palette: &Palette, table: &toml::Table) -> Look {
         look.accents.entry(app).or_insert(c);
     }
     look
+}
+
+/// Code colours from an Omarchy theme's named colours.
+fn omarchy_syntax(table: &toml::Table) -> SyntaxFile {
+    let get = |keys: &[&str]| keys.iter().find_map(|k| table.get(*k)?.as_str().map(str::to_string));
+    SyntaxFile {
+        keyword: get(&["magenta", "blue"]),
+        string: get(&["green"]),
+        constant: get(&["orange", "yellow"]),
+        type_name: get(&["cyan", "blue"]),
+        preprocessor: get(&["yellow"]),
+    }
 }
 
 /// App accents taken from an Omarchy theme's named colours, so Follow Omarchy
@@ -765,6 +851,20 @@ mod tests {
         let table: toml::Table = toml::from_str("blue = \"#89b4fa\"").unwrap();
         let omarchy = omarchy_look(&fallback_palette(), &table);
         assert_eq!(omarchy.sections["settings"]["connections"], "#89b4fa");
+    }
+
+    #[test]
+    fn syntax_and_file_icons_come_from_the_theme() {
+        let dark = bundled().into_iter().find(|t| t.id == "nixe-dark").unwrap();
+        let violet = dark.look.swatches.iter().find(|(n, _)| n == "violet").unwrap().1.clone();
+        assert_eq!(dark.look.syntax.keyword.as_deref(), Some(violet.as_str()));
+        assert_eq!(dark.look.file_icon_colors, FileIconColors::Brand);
+        let nord = bundled().into_iter().find(|t| t.id == "nord").unwrap();
+        assert!(nord.look.syntax.keyword.is_none(), "a theme without [syntax] leaves code to the app");
+        let table: toml::Table = toml::from_str("magenta = \"#f5c2e7\"\ngreen = \"#a6e3a1\"").unwrap();
+        let omarchy = omarchy_look(&fallback_palette(), &table);
+        assert_eq!(omarchy.syntax.keyword.as_deref(), Some("#f5c2e7"));
+        assert_eq!(omarchy.syntax.string.as_deref(), Some("#a6e3a1"));
     }
 
     #[test]

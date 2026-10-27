@@ -82,3 +82,13 @@ blended = true
 
 [icons]
 pack = "nixe-icons"
+# File-type icons keep their brand colours ("brand") or take the theme's ("theme")
+file_colors = "brand"
+
+# Code colours: swatch names or colours
+[syntax]
+keyword = "violet"
+string = "green"
+constant = "amber"
+type = "teal"
+preprocessor = "coral"

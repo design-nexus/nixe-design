@@ -12,7 +12,10 @@ use std::time::SystemTime;
 
 mod themes;
 use themes::themes_stamp;
-pub use themes::{Font, Look, Material, SWATCH_NAMES, Shape, Surface, all, bundled, custom, edit_copy, look_css, theme_dirs};
+pub use themes::{
+    FileIconColors, Font, Look, Material, SWATCH_NAMES, Shape, Surface, Syntax, all, bundled, custom, edit_copy, look_css,
+    theme_dirs,
+};
 
 /// Where the colours come from.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
