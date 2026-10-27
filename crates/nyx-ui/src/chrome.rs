@@ -65,11 +65,52 @@ pub fn search_strip(entry: &gtk::SearchEntry) -> gtk::Box {
 
 /// The settings gear for the end of the status bar.
 pub fn gear(open: impl Fn() + 'static) -> gtk::Button {
-    let b = widgets::bar_button("emblem-system-symbolic", "Settings (Ctrl+,)");
+    let b = settings_button(open);
     b.add_css_class("status-action");
+    b
+}
+
+/// The settings button every Nyx app uses: two sliders. In 2.0 it sits at the
+/// right end of the header.
+pub fn settings_button(open: impl Fn() + 'static) -> gtk::Button {
+    install_icons();
+    let b = widgets::bar_button(SETTINGS_ICON, "Settings (Ctrl+,)");
     b.connect_clicked(move |_| open());
     b
 }
+
+const SETTINGS_ICON: &str = "nyx-settings-symbolic";
+
+/// The suite's own symbolic icons, written once to the app's cache and added to
+/// the icon theme. Filled shapes: GTK fills every path of a symbolic icon.
+fn install_icons() {
+    thread_local! {
+        static DONE: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    }
+    if DONE.with(|d| d.replace(true)) {
+        return;
+    }
+    let dir = nyx_core::paths::cache_dir().join("nyx-icons");
+    let path = dir.join(format!("{SETTINGS_ICON}.svg"));
+    if std::fs::read_to_string(&path).ok().as_deref() != Some(SETTINGS_SVG) {
+        let _ = nyx_core::cmd::atomic_write(&path, SETTINGS_SVG);
+    }
+    if let Some(display) = gtk::gdk::Display::default() {
+        gtk::IconTheme::for_display(&display).add_search_path(dir);
+    }
+}
+
+const SETTINGS_SVG: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+<g fill="#000000">
+<rect x="3.2" y="6.2" width="10.6" height="1.6" rx="0.8"/>
+<rect x="16.2" y="6.2" width="4.6" height="1.6" rx="0.8"/>
+<rect x="3.2" y="16.2" width="4.6" height="1.6" rx="0.8"/>
+<rect x="10.2" y="16.2" width="10.6" height="1.6" rx="0.8"/>
+<rect x="14.2" y="4.2" width="1.6" height="5.6" rx="0.8"/>
+<rect x="8.2" y="14.2" width="1.6" height="5.6" rx="0.8"/>
+</g>
+</svg>
+"##;
 
 /// A small icon button for the status bar (an app action that used to sit in
 /// the top bar).

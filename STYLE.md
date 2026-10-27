@@ -181,12 +181,15 @@ Density is a suite preference; **Balanced** is the default.
     optional subtitle in `dim_text` (section, folder, account).
   - **Middle:** what the app navigates by: a path, the document title, a view switch
     (Day/Week/Month), the selection toolbar while items are selected, or search.
-  - **Right:** contextual icon actions, then the `⋯` menu.
+  - **Right:** contextual icon actions, then Settings last: the two-slider icon
+    (`nyx_ui::chrome::settings_button`, `nyx-settings-symbolic`), tooltip
+    "Settings (Ctrl+,)". The sidebar toggle sits here too when a subtitle would move it.
   - **Window controls** (minimize, maximize, close) only on **floating** windows, after
     a small gap; hidden when tiled.
   - The empty parts of the header drag the window; double-click maximizes.
-- **Status bar** (28 px): counts and selection on the left; live activity (copying,
-  syncing, backing up) with a pulsing dot and a thin progress bar on the right.
+- **No status bar.** Counts, sync state and shortcuts hints don't get a bar of their
+  own; settings is in the header, and anything that needs showing goes where it
+  belongs (an account at the sidebar's foot, live activity as a toast or in the header).
 - **Tabs** (Files, Notes) sit in a 34 px row under the header; the active tab is a pill
   in the hover tone; `+` opens one.
 - **Default size** 1280 × 800 floating; the layout must work at 800 px tiled.
