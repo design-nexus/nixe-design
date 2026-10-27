@@ -98,3 +98,85 @@ pub fn shortcuts_button(open: impl Fn() + 'static) -> gtk::Button {
     help.connect_clicked(move |_| open());
     help
 }
+
+/// The Nixe 2.0 unified header: the app's symbolic icon and name (in its accent)
+/// with an optional subtitle at the left, what the app navigates by in the
+/// middle, its actions at the right, and the window controls after them while
+/// the window floats. Empty parts drag the window; a double-click maximizes.
+pub struct AppHeader {
+    /// Put this at the top of the window.
+    pub root: gtk::WindowHandle,
+    pub subtitle: gtk::Label,
+    /// After the name and subtitle (a sidebar toggle, back and forward).
+    pub start: gtk::Box,
+    /// Centred in the header (a path, a search field, a view switch).
+    pub center: gtk::Box,
+    /// Before the window controls (the app's actions and its `⋯` menu).
+    pub end: gtk::Box,
+}
+
+pub fn app_header(window: &impl IsA<gtk::Window>, icon: &str, name: &str) -> AppHeader {
+    let bar = gtk::CenterBox::new();
+    bar.add_css_class("app-header");
+    let left = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+    let image = gtk::Image::from_icon_name(icon);
+    image.add_css_class("app-icon");
+    left.append(&image);
+    left.append(&widgets::label(name, "app-title"));
+    let subtitle = widgets::label("", "app-subtitle");
+    subtitle.set_ellipsize(gtk::pango::EllipsizeMode::End);
+    subtitle.set_visible(false);
+    left.append(&subtitle);
+    let start = gtk::Box::new(gtk::Orientation::Horizontal, 2);
+    start.set_margin_start(10);
+    left.append(&start);
+    let center = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    let right = gtk::Box::new(gtk::Orientation::Horizontal, 2);
+    let end = gtk::Box::new(gtk::Orientation::Horizontal, 2);
+    right.append(&end);
+    let controls = gtk::WindowControls::new(gtk::PackType::End);
+    controls.set_decoration_layout(Some(":minimize,maximize,close"));
+    controls.add_css_class("window-controls");
+    right.append(&controls);
+    bar.set_start_widget(Some(&left));
+    bar.set_center_widget(Some(&center));
+    bar.set_end_widget(Some(&right));
+    show_controls_when_floating(window.upcast_ref(), &controls);
+    let root = gtk::WindowHandle::new();
+    root.set_child(Some(&bar));
+    AppHeader { root, subtitle, start, center, end }
+}
+
+impl AppHeader {
+    /// Show `text` after the app's name (the page, folder or account), or nothing.
+    pub fn set_subtitle(&self, text: &str) {
+        self.subtitle.set_text(text);
+        self.subtitle.set_visible(!text.is_empty());
+    }
+}
+
+/// Window controls only make sense on a floating window: a tiled, maximized or
+/// fullscreen one is placed by the compositor. Hyprland reports tiled windows
+/// through the toplevel's tiled states.
+fn show_controls_when_floating(window: &gtk::Window, controls: &gtk::WindowControls) {
+    let update = {
+        let controls = controls.clone();
+        move |surface: &gtk::gdk::Toplevel| {
+            use gtk::gdk::ToplevelState as S;
+            let placed = S::TILED
+                | S::TOP_TILED
+                | S::RIGHT_TILED
+                | S::BOTTOM_TILED
+                | S::LEFT_TILED
+                | S::MAXIMIZED
+                | S::FULLSCREEN;
+            controls.set_visible(!surface.state().intersects(placed));
+        }
+    };
+    window.connect_realize(move |w| {
+        let Some(toplevel) = w.surface().and_downcast::<gtk::gdk::Toplevel>() else { return };
+        update(&toplevel);
+        let update = update.clone();
+        toplevel.connect_state_notify(move |t| update(t));
+    });
+}

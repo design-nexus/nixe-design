@@ -55,8 +55,12 @@ graphite = "#a3a3ab"
 [sections.settings]
 home = "#5cc8d8"
 connections = "#5b9cff"
+hardware = "#f2b545"
 personalization = "#9d7bff"
-privacy = "#46d08a"
+desktop = "#ff6fae"
+input = "#ff7a59"
+accounts = "#46d08a"
+assistant = "#4cc9d6"
 system = "#ff9f43"
 
 [font]

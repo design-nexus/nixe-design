@@ -404,6 +404,8 @@ thread_local! {
     static ACTIVE_LOOK: RefCell<Option<Look>> = const { RefCell::new(None) };
     /// Whether this app has moved to Nixe 2.0.
     static DESIGN_2: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    /// The section of the app on screen, for section accents (2.0).
+    static SECTION: RefCell<Option<String>> = const { RefCell::new(None) };
     static LISTENERS: RefCell<Vec<(glib::WeakRef<gtk::Widget>, Listener)>> = const { RefCell::new(Vec::new()) };
     static GLOBAL: RefCell<Vec<Listener>> = const { RefCell::new(Vec::new()) };
     /// The theme this app and the suite file last agreed on.
@@ -490,6 +492,17 @@ pub fn use_design_2() {
     DESIGN_2.with(|d| d.set(true));
 }
 
+/// Tell the theme which section of the app is on screen (`Some("privacy")`), so
+/// its section accent applies; `None` for none. Restyles when it changes. A
+/// swatch picked in the app's Accent row wins over section accents.
+pub fn set_section(section: Option<&str>) {
+    let new = section.map(str::to_string);
+    if SECTION.with(|s| *s.borrow() != new) {
+        SECTION.with(|s| *s.borrow_mut() = new);
+        apply();
+    }
+}
+
 /// Whether this app uses Nixe 2.0.
 pub fn design_2() -> bool {
     DESIGN_2.with(|d| d.get())
@@ -547,7 +560,12 @@ pub fn apply() {
     let app_accent = STYLE.with(|s| {
         s.borrow().as_ref().map(|style| {
             let app = style.window_class.strip_suffix("-window").unwrap_or(style.window_class);
-            resolve_app_accent(app, &palette, &look, &suite)
+            let section = SECTION.with(|s| s.borrow().clone());
+            let picked = suite.app_accents.contains_key(app);
+            section
+                .filter(|_| !picked)
+                .and_then(|sec| look.sections.get(app).and_then(|m| m.get(&sec)).cloned())
+                .unwrap_or_else(|| resolve_app_accent(app, &palette, &look, &suite))
         })
     });
     if v2 {
