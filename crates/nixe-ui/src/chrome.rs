@@ -163,13 +163,8 @@ fn show_controls_when_floating(window: &gtk::Window, controls: &gtk::WindowContr
         let controls = controls.clone();
         move |surface: &gtk::gdk::Toplevel| {
             use gtk::gdk::ToplevelState as S;
-            let placed = S::TILED
-                | S::TOP_TILED
-                | S::RIGHT_TILED
-                | S::BOTTOM_TILED
-                | S::LEFT_TILED
-                | S::MAXIMIZED
-                | S::FULLSCREEN;
+            let placed =
+                S::TILED | S::TOP_TILED | S::RIGHT_TILED | S::BOTTOM_TILED | S::LEFT_TILED | S::MAXIMIZED | S::FULLSCREEN;
             controls.set_visible(!surface.state().intersects(placed));
         }
     };
