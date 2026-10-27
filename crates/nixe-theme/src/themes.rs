@@ -440,7 +440,7 @@ fn swatches(own: &BTreeMap<String, String>, light: bool) -> Vec<(String, String)
 }
 
 /// Swatches from an Omarchy theme's named colours, where it has them.
-pub(crate) fn omarchy_swatches(table: &toml::Table) -> BTreeMap<String, String> {
+fn omarchy_swatches(table: &toml::Table) -> BTreeMap<String, String> {
     const MAP: &[(&str, &str)] = &[
         ("blue", "blue"),
         ("violet", "magenta"),
@@ -564,9 +564,35 @@ pub(crate) fn themes_stamp() -> Vec<(PathBuf, Option<SystemTime>)> {
     files
 }
 
+/// The look under Follow Omarchy: Omarchy's colours, with everything else
+/// (fonts, radii, material, tint strengths) from Nixe Dark or Light, and app
+/// accents and swatches from Omarchy's named colours.
+pub(crate) fn omarchy_look(palette: &Palette, table: &toml::Table) -> Look {
+    let id = if palette.light { "nixe-light" } else { "nixe-dark" };
+    let nixe = shipped_files().into_iter().find(|(s, _)| *s == id).map(|(_, f)| f).unwrap_or_default();
+    let file = ThemeFile {
+        hover: nixe.hover,
+        selection: nixe.selection,
+        font: nixe.font,
+        shape: nixe.shape,
+        material: nixe.material,
+        icons: nixe.icons,
+        ..ThemeFile::default()
+    };
+    let mut look = file.look(palette, "omarchy");
+    look.accents = omarchy_accents(table);
+    let own = omarchy_swatches(table);
+    for (name, c) in &mut look.swatches {
+        if let Some(o) = own.get(name) {
+            *c = o.clone();
+        }
+    }
+    look
+}
+
 /// App accents taken from an Omarchy theme's named colours, so Follow Omarchy
 /// still gives each app its own colour.
-pub(crate) fn omarchy_accents(table: &toml::Table) -> BTreeMap<String, String> {
+fn omarchy_accents(table: &toml::Table) -> BTreeMap<String, String> {
     const MAP: &[(&str, &str)] = &[
         ("files", "blue"),
         ("mail", "magenta"),
@@ -694,6 +720,16 @@ mod tests {
         }
         let light = bundled().into_iter().find(|t| t.id == "nixe-light").unwrap();
         assert_eq!(light.look.swatches[0], ("blue".to_string(), "#2f6fea".to_string()));
+    }
+
+    #[test]
+    fn follow_omarchy_keeps_the_nixe_look() {
+        let table: toml::Table = toml::from_str("blue = \"#89b4fa\"\nmagenta = \"#f5c2e7\"").unwrap();
+        let look = omarchy_look(&fallback_palette(), &table);
+        assert!(look.material.blended);
+        assert_eq!(look.font.ui.as_deref(), Some("Inter"));
+        assert_eq!(look.accents["files"], "#89b4fa");
+        assert!(look.swatches.iter().any(|(n, c)| n == "violet" && c == "#f5c2e7"));
     }
 
     #[test]

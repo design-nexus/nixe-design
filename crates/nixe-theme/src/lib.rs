@@ -11,8 +11,8 @@ use std::cell::RefCell;
 use std::time::SystemTime;
 
 mod themes;
+use themes::themes_stamp;
 pub use themes::{Font, Look, Material, SWATCH_NAMES, Shape, Surface, all, bundled, custom, edit_copy, look_css, theme_dirs};
-use themes::{ThemeFile, themes_stamp};
 
 /// Where the colours come from.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -194,8 +194,8 @@ fn suite2_css(window_class: &str, suite: &Suite) -> String {
 /// The mixes the 2.0 sheet uses, from the theme's tint strengths.
 fn defines2(look: &Look) -> String {
     format!(
-        "@define-color hairline mix(@theme_bg, @theme_border, 0.82);\n\
-         @define-color divider @theme_divider;\n\
+        "@define-color hairline {hairline};\n\
+         @define-color divider {divider};\n\
          @define-color nav_active mix(@theme_bg, @theme_accent, {sel});\n\
          @define-color row_hover mix(@theme_bg, @theme_accent, {hover});\n\
          @define-color lift @theme_card;\n\
@@ -205,6 +205,9 @@ fn defines2(look: &Look) -> String {
          @define-color track alpha(@theme_text, 0.1);\n",
         sel = look.selection,
         hover = look.hover,
+        // Blended: the lines an app's own sheet still draws between areas and rows vanish.
+        hairline = if look.material.blended { "alpha(@theme_bg, 0)" } else { "mix(@theme_bg, @theme_border, 0.82)" },
+        divider = if look.material.blended { "alpha(@theme_bg, 0)" } else { "@theme_divider" },
     )
 }
 
@@ -291,16 +294,8 @@ pub fn current_theme() -> Theme {
         && let Ok(text) = std::fs::read_to_string(paths::omarchy_colors())
         && let Some(palette) = from_omarchy_colors(&text)
     {
-        let mut look = ThemeFile::default().look(&palette, "omarchy");
-        if let Ok(table) = toml::from_str::<toml::Table>(&text) {
-            look.accents = themes::omarchy_accents(&table);
-            let own = themes::omarchy_swatches(&table);
-            for (name, c) in &mut look.swatches {
-                if let Some(o) = own.get(name) {
-                    *c = o.clone();
-                }
-            }
-        }
+        let table = toml::from_str::<toml::Table>(&text).unwrap_or_default();
+        let look = themes::omarchy_look(&palette, &table);
         return Theme { id: "omarchy".into(), name: "Omarchy".into(), palette, look };
     }
     let mut themes = all();
