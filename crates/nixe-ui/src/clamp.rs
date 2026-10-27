@@ -1,5 +1,5 @@
-//! A container that keeps its child at most `max` pixels wide, centred, and lets
-//! it shrink below that. GTK4 has no such widget without libadwaita.
+//! A container that keeps its child at most `max` pixels wide, centred (or at the
+//! start or end, following the child's `halign`), and lets it shrink below that. GTK4 has no such widget without libadwaita.
 
 use gtk::glib;
 use gtk::prelude::*;
@@ -52,7 +52,11 @@ mod imp {
             if let Some(child) = self.obj().first_child() {
                 let (min, _, _, _) = child.measure(gtk::Orientation::Horizontal, -1);
                 let w = width.min(self.max.get()).max(min.min(width));
-                let x = (width - w) / 2;
+                let x = match child.halign() {
+                    gtk::Align::Start => 0,
+                    gtk::Align::End => width - w,
+                    _ => (width - w) / 2,
+                };
                 child.size_allocate(&gtk::Allocation::new(x, 0, w, height), baseline);
             }
         }
