@@ -146,6 +146,93 @@ window.@APP@ .commandbar { min-height: 40px; }
 window.@APP@ .inspector-section { padding-top: 10px; padding-bottom: 12px; }
 ";
 
+/// The Nixe 2.0 stylesheet, loaded on top of [`BASE_CSS`] by apps that have
+/// moved to 2.0 ([`use_design_2`]).
+pub const BASE2_CSS: &str = include_str!("base2.css");
+
+/// Lines between areas, for themes that turn `blended` off.
+const UNBLENDED: &str = "
+.top-bar, .app-header { border-bottom: 1px solid @hairline; }
+.settings-navigation { border-right: 1px solid @hairline; }
+.status-bar { border-top: 1px solid @hairline; }
+.group-list, .card, .settings-option { border: 1px solid @hairline; }
+.group-list .settings-option { border: none; border-top: 1px solid @theme_divider; }
+.group-list > .settings-option:first-child, .group-list > box:first-child > .settings-option:first-child { border-top: none; }
+";
+
+/// 2.0 sizes for the suite's density: `(header, nav item, row, option row, control, status bar)`.
+fn density_sizes(density: &str) -> (u32, u32, u32, u32, u32, u32) {
+    match density {
+        "compact" => (42, 30, 30, 44, 30, 26),
+        "relaxed" => (50, 38, 42, 60, 34, 30),
+        _ => (46, 34, 36, 52, 32, 28),
+    }
+}
+
+/// The suite's density and text size as 2.0 CSS for one app.
+fn suite2_css(window_class: &str, suite: &Suite) -> String {
+    let (header, nav, row, option, control, status) = density_sizes(&suite.density);
+    let segment = control - 6;
+    let mut css = format!(
+        "window.{w} .top-bar, window.{w} .app-header {{ min-height: {header}px; }}\n\
+         window.{w} .settings-navigation button.nav-item {{ min-height: {nav}px; }}\n\
+         window.{w} listview > row, window.{w} list > row, window.{w} columnview > listview > row {{ min-height: {row}px; }}\n\
+         window.{w} .settings-option {{ min-height: {option}px; }}\n\
+         window.{w} button, window.{w} entry, window.{w} spinbutton, window.{w} dropdown > button {{ min-height: {control}px; }}\n\
+         window.{w} button.bar-button, window.{w} button.icon-button, window.{w} menubutton.bar-button > button {{ min-width: {control}px; min-height: {control}px; padding: 0; }}\n\
+         window.{w} .segmented button.segment {{ min-height: {segment}px; }}\n\
+         window.{w} .status-bar {{ min-height: {status}px; }}\n",
+        w = window_class
+    );
+    let scale = suite.text_scale.clamp(0.9, 1.25);
+    if (scale - 1.0).abs() > 0.001 {
+        css.push_str(&format!("window.{window_class} {{ font-size: {scale:.3}em; }}\n"));
+    }
+    css
+}
+
+/// The mixes the 2.0 sheet uses, from the theme's tint strengths.
+fn defines2(look: &Look) -> String {
+    format!(
+        "@define-color hairline mix(@theme_bg, @theme_border, 0.82);\n\
+         @define-color divider @theme_divider;\n\
+         @define-color nav_active mix(@theme_bg, @theme_accent, {sel});\n\
+         @define-color row_hover mix(@theme_bg, @theme_accent, {hover});\n\
+         @define-color lift @theme_card;\n\
+         @define-color lift_active mix(@theme_card, @theme_accent, 0.1);\n\
+         @define-color veil alpha(mix(@theme_bg, @theme_shadow, 0.45), 0.82);\n\
+         @define-color field alpha(@theme_text, 0.035);\n\
+         @define-color track alpha(@theme_text, 0.1);\n",
+        sel = look.selection,
+        hover = look.hover,
+    )
+}
+
+/// The full sheet an app with no stylesheet of its own would load for `theme`,
+/// for checking that GTK accepts it (see `examples/check_css.rs`).
+pub fn sheet_for_check(window_class: &str, theme: &Theme, v2: bool) -> String {
+    let suite = Suite::default();
+    let mut css = palette_css(&theme.palette);
+    css.push_str(&look_css(window_class, &theme.palette.accent, &theme.look));
+    if v2 {
+        css.push_str(&defines2(&theme.look));
+        css.push_str(&without_defines(&base_css(window_class, &[])));
+        css.push('\n');
+        css.push_str(&BASE2_CSS.replace("@APP@", window_class));
+        css.push_str(UNBLENDED);
+        css.push_str(&suite2_css(window_class, &suite));
+    } else {
+        css.push_str(&base_css(window_class, &[]));
+        css.push_str(&suite_css(window_class, &suite));
+    }
+    css
+}
+
+/// The shared v1 sheet without its colour definitions, which 2.0 replaces.
+fn without_defines(css: &str) -> String {
+    css.lines().filter(|l| !l.trim_start().starts_with("@define-color")).collect::<Vec<_>>().join("\n")
+}
+
 pub fn suite_file() -> std::path::PathBuf {
     paths::suite_dir().join("theme.toml")
 }
@@ -315,6 +402,8 @@ thread_local! {
     static PROVIDER: RefCell<Option<gtk::CssProvider>> = const { RefCell::new(None) };
     static ACTIVE: RefCell<Option<Palette>> = const { RefCell::new(None) };
     static ACTIVE_LOOK: RefCell<Option<Look>> = const { RefCell::new(None) };
+    /// Whether this app has moved to Nixe 2.0.
+    static DESIGN_2: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
     static LISTENERS: RefCell<Vec<(glib::WeakRef<gtk::Widget>, Listener)>> = const { RefCell::new(Vec::new()) };
     static GLOBAL: RefCell<Vec<Listener>> = const { RefCell::new(Vec::new()) };
     /// The theme this app and the suite file last agreed on.
@@ -394,6 +483,18 @@ pub fn on_change(f: impl Fn() + 'static) {
     GLOBAL.with(|g| g.borrow_mut().push(Box::new(f)));
 }
 
+/// Move this app to Nixe 2.0: the 2.0 stylesheet on top of the shared one, the
+/// app's own accent as `@theme_accent`, and 2.0 sizes for the suite's density.
+/// Call it before [`install`].
+pub fn use_design_2() {
+    DESIGN_2.with(|d| d.set(true));
+}
+
+/// Whether this app uses Nixe 2.0.
+pub fn design_2() -> bool {
+    DESIGN_2.with(|d| d.get())
+}
+
 /// Install the app's stylesheet and the current palette on the default display.
 pub fn install(style: Style) {
     // Start with the suite's theme if another app has chosen one.
@@ -440,21 +541,58 @@ pub fn apply() {
         });
         SYNCED.with(|s| *s.borrow_mut() = Some(mine));
     }
-    let Theme { palette, look, .. } = current_theme();
+    let Theme { mut palette, mut look, .. } = current_theme();
+    let v2 = design_2();
+    let suite = read_suite().unwrap_or_default();
+    let app_accent = STYLE.with(|s| {
+        s.borrow().as_ref().map(|style| {
+            let app = style.window_class.strip_suffix("-window").unwrap_or(style.window_class);
+            resolve_app_accent(app, &palette, &look, &suite)
+        })
+    });
+    if v2 {
+        // In 2.0 the app's own accent is the accent everything uses.
+        if let Some(accent) = &app_accent {
+            palette.accent = accent.clone();
+            palette.glow = accent.clone();
+        }
+        if look.material.blended {
+            look.panel = palette.bg.clone();
+        }
+    }
     ACTIVE.with(|a| *a.borrow_mut() = Some(palette.clone()));
     ACTIVE_LOOK.with(|a| *a.borrow_mut() = Some(look.clone()));
     let mut css = palette_css(&palette);
     STYLE.with(|s| {
         if let Some(style) = s.borrow().as_ref() {
+            let accent = app_accent.clone().unwrap_or_else(|| palette.accent.clone());
+            if v2 {
+                css.push_str(&look_css(style.window_class, &accent, &look));
+                css.push_str(&defines2(&look));
+            }
             if let Some(extra) = style.extra_colors {
                 css.push_str(&extra(&palette));
             }
-            css.push_str(&base_css(style.window_class, style.base_skip));
+            let base = base_css(style.window_class, style.base_skip);
+            if v2 {
+                css.push_str(&without_defines(&base));
+                css.push('\n');
+                css.push_str(&BASE2_CSS.replace("@APP@", style.window_class));
+                if !look.material.blended {
+                    css.push_str(UNBLENDED);
+                }
+            } else {
+                css.push_str(&base);
+            }
             css.push_str(style.css);
-            let app = style.window_class.strip_suffix("-window").unwrap_or(style.window_class);
-            let accent = resolve_app_accent(app, &palette, &look, &read_suite().unwrap_or_default());
-            css.push_str(&look_css(style.window_class, &accent, &look));
-            css.push_str(&suite_css(style.window_class, &read_suite().unwrap_or_default()));
+            if v2 {
+                // Again after the app's sheet, so the theme's fonts win over an app's own.
+                css.push_str(&look_css(style.window_class, &accent, &look));
+                css.push_str(&suite2_css(style.window_class, &suite));
+            } else {
+                css.push_str(&look_css(style.window_class, &accent, &look));
+                css.push_str(&suite_css(style.window_class, &suite));
+            }
             if !prefs.glow {
                 css.push('\n');
                 css.push_str(style.no_glow_css);
@@ -628,6 +766,29 @@ mod tests {
     #[test]
     fn rejects_incomplete_colors() {
         assert!(from_omarchy_colors("accent = \"#fff\"").is_none());
+    }
+
+    #[test]
+    fn design_2_replaces_the_v1_colours() {
+        let base = without_defines(&base_css("files-window", &[]));
+        assert!(!base.contains("@define-color"));
+        let look = bundled().into_iter().find(|t| t.id == "nixe-dark").unwrap().look;
+        let defines = defines2(&look);
+        for name in ["hairline", "divider", "nav_active", "row_hover", "lift", "lift_active", "veil", "field", "track"] {
+            assert!(defines.contains(&format!("@define-color {name} ")), "{name}");
+        }
+        let used = ["@field", "@track", "@theme_panel", "@theme_card", "@theme_raised", "@theme_popover", "@theme_text_tertiary"];
+        for name in used {
+            assert!(BASE2_CSS.contains(name), "2.0 sheet uses {name}");
+        }
+    }
+
+    #[test]
+    fn density_sizes_follow_the_suite() {
+        let mut suite = Suite::default();
+        assert!(suite2_css("files-window", &suite).contains(".app-header { min-height: 46px; }"));
+        suite.density = "compact".into();
+        assert!(suite2_css("files-window", &suite).contains(".app-header { min-height: 42px; }"));
     }
 
     #[test]

@@ -11,7 +11,11 @@ by using them rather than by copying another app:
 | `nixe-icons` | App icons and symbolic header icons |
 
 Apps move to 2.0 one at a time. Until an app has moved it follows
-[docs/STYLE-v1.md](docs/STYLE-v1.md). The mockups this guide comes from are the
+[docs/STYLE-v1.md](docs/STYLE-v1.md). An app moves by calling
+`nixe_theme::use_design_2()` before `nixe_theme::install`: the 2.0 sheet
+(`crates/nixe-theme/src/base2.css`) then loads on top of the shared one, the app's own
+accent becomes `@theme_accent`, and sizes follow the 2.0 density table. Check that GTK
+accepts the sheets with `cargo run -p nixe-theme --example check_css`. The mockups this guide comes from are the
 *Nixe Design 2.0* canvas (Files, Notes, Settings, Photos, Mail, Calendar, Icons).
 
 ---
