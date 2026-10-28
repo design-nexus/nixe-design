@@ -272,7 +272,7 @@ first, then three every app ends with, built by the card from the app's `Standar
 - **Appearance** — Follow Omarchy, Theme, Accent, Reduce motion, Open on.
 - **Keyboard** — every shortcut, with its keys.
 - **About** — the app's icon (64 px), name (600), version, one line on what it does,
-  licence, Project page and Report a problem buttons, credits.
+  licence, Project page and Report a problem buttons, and a Built with row.
 
 An app never repeats these in its own groups; options that only its window has go in a
 group named for what they're about (Editor, Playback), not "This window".

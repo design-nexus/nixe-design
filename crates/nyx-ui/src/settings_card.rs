@@ -52,7 +52,7 @@ pub struct About {
     /// The project page and where to report a problem (empty: no row).
     pub website: &'static str,
     pub issues: &'static str,
-    /// What it's built on, by name and a few words (`("mpv", "Video playback")`).
+    /// What it's built on, by name and a few words (`("mpv", "video playback")`).
     pub credits: &'static [(&'static str, &'static str)],
 }
 
@@ -91,9 +91,14 @@ thread_local! {
 pub fn open(overlay: &gtk::Overlay, window: &gtk::ApplicationWindow, spec: Spec, page: impl FnOnce() -> (gtk::Widget, gtk::Box)) {
     if DIALOG.with(|d| d.borrow().is_none()) {
         let (root, body) = page();
-        install(overlay, spec, &root, &body, String::new());
+        install(overlay, spec, &root, &body, first_group());
     }
     show(window);
+}
+
+/// The group the card opens on: the first, or `NYX_SETTINGS_GROUP` (for checks).
+fn first_group() -> String {
+    std::env::var("NYX_SETTINGS_GROUP").unwrap_or_default()
 }
 
 /// Show the card around a page the caller has just built (rebuilt each time it
@@ -106,7 +111,7 @@ pub fn open_page(overlay: &gtk::Overlay, window: &gtk::ApplicationWindow, spec: 
         }
         Some(old.current)
     });
-    install(overlay, spec, root, body, current.unwrap_or_default());
+    install(overlay, spec, root, body, current.unwrap_or_else(first_group));
     show(window);
 }
 
@@ -526,7 +531,7 @@ fn about(list: &gtk::Box, about: &About) {
     list.append(&widgets::row("Licence", about.licence, None));
     for (title, desc, url, icon) in [
         ("Project page", "The source, releases and documentation.", about.website, "web-browser-symbolic"),
-        ("Report a problem", "Open an issue on the project page.", about.issues, "mail-message-new-symbolic"),
+        ("Report a problem", "Open an issue on the project page.", about.issues, "dialog-warning-symbolic"),
     ] {
         if url.is_empty() {
             continue;
@@ -539,7 +544,8 @@ fn about(list: &gtk::Box, about: &About) {
         });
         list.append(&widgets::row(title, desc, Some(open.upcast_ref())));
     }
-    for (name, what) in about.credits {
-        list.append(&widgets::row(name, what, None));
+    if !about.credits.is_empty() {
+        let built: Vec<String> = about.credits.iter().map(|(name, what)| format!("{name} ({what})")).collect();
+        list.append(&widgets::row("Built with", &built.join(", "), None));
     }
 }
