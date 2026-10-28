@@ -448,6 +448,27 @@ fn shares_theme() -> bool {
     STYLE.with(|s| s.borrow().as_ref().is_some_and(|s| s.set_theme.is_some()))
 }
 
+/// This app's theme preferences as they apply now (the suite's theme when the app
+/// shares it), for the settings card's Appearance group.
+pub fn app_prefs() -> ThemePrefs {
+    config_prefs()
+}
+
+/// Whether this app can choose the theme (it stores a theme choice, see
+/// [`Style::set_theme`]); otherwise it only follows the suite's.
+pub fn can_choose_theme() -> bool {
+    shares_theme()
+}
+
+/// Store a theme choice through the app's own preferences (and so for the suite),
+/// then restyle.
+pub fn choose_theme(mode: ThemeMode, theme: &str) {
+    if let Some(set) = STYLE.with(|s| s.borrow().as_ref().and_then(|s| s.set_theme)) {
+        set(mode, theme.to_owned());
+    }
+    apply();
+}
+
 /// The theme an app shows. An app that can't store a theme choice shows the
 /// suite's, whatever its own preferences say.
 fn effective_prefs(mut prefs: ThemePrefs, suite: Option<&Suite>, shares: bool) -> ThemePrefs {

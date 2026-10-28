@@ -2,7 +2,10 @@
 //! chosen group's options on the right, and a search across all of them.
 //!
 //! The app builds its settings page as usual (a body whose children are
-//! `settings-group` boxes, each named after its group) and hands it here.
+//! `settings-group` boxes, each named after its group) and hands it here. Every
+//! app's card then ends with the same three groups, built here from its
+//! [`Standard`]: Appearance (Follow Omarchy, Theme, Accent, Reduce motion, Open
+//! on), Keyboard (its shortcuts) and About (version, licence, links).
 
 use crate::widgets;
 use gtk::prelude::*;
@@ -12,12 +15,53 @@ use std::cell::RefCell;
 /// How the card lists an app's settings.
 #[derive(Clone, Copy)]
 pub struct Spec {
-    /// Each group's name, icon and one-line summary, in the card's list.
+    /// Each of the app's own groups: name, icon and one-line summary, in the
+    /// card's list (the standard groups follow them).
     pub groups: &'static [(&'static str, &'static str, &'static str)],
     /// The words a row is found by, when the app keeps its own; otherwise the
     /// row's visible text is searched.
     pub search_text: Option<fn(&gtk::Widget) -> Option<String>>,
+    /// What the standard groups need; `None` for a card that isn't an app's settings.
+    pub standard: Option<Standard>,
 }
+
+/// What the card's Appearance, Keyboard and About groups are built from.
+#[derive(Clone, Copy)]
+pub struct Standard {
+    /// The app's key for its accent (`"music"`), as in [`crate::widgets::accent_row`].
+    pub app: &'static str,
+    pub about: About,
+    /// Every shortcut: its keys and what it does.
+    pub shortcuts: &'static [(&'static [&'static str], &'static str)],
+    /// The app's Reduce motion preference.
+    pub reduce_motion: fn() -> bool,
+    pub set_reduce_motion: fn(bool),
+}
+
+/// The About group: who the app is.
+#[derive(Clone, Copy)]
+pub struct About {
+    pub name: &'static str,
+    /// The app's icon name (its application id).
+    pub icon: &'static str,
+    /// `env!("CARGO_PKG_VERSION")` of the app's crate.
+    pub version: &'static str,
+    /// One line on what it does.
+    pub description: &'static str,
+    pub licence: &'static str,
+    /// The project page and where to report a problem (empty: no row).
+    pub website: &'static str,
+    pub issues: &'static str,
+    /// What it's built on, by name and a few words (`("mpv", "Video playback")`).
+    pub credits: &'static [(&'static str, &'static str)],
+}
+
+/// The standard groups' names, icons and summaries, after the app's own.
+const STANDARD_GROUPS: &[(&str, &str, &str)] = &[
+    ("Appearance", "applications-graphics-symbolic", "Theme, accent, motion"),
+    ("Keyboard", "input-keyboard-symbolic", "Shortcuts"),
+    ("About", "help-about-symbolic", "Version, licence, links"),
+];
 
 struct Group {
     name: String,
@@ -73,6 +117,9 @@ pub fn page() -> Option<gtk::Widget> {
 
 fn install(overlay: &gtk::Overlay, spec: Spec, root: &gtk::Widget, body: &gtk::Box, current: String) {
     SPEC.with(|s| *s.borrow_mut() = Some(spec));
+    if let Some(standard) = spec.standard {
+        append_standard(body, &standard);
+    }
     let mut dialog = build(spec, root, body);
     dialog.current = current;
     overlay.add_overlay(&dialog.veil);
@@ -194,8 +241,13 @@ fn build(spec: Spec, root: &gtk::Widget, body: &gtk::Box) -> Dialog {
             continue;
         }
         let name = w.widget_name().to_string();
-        let (icon, summary) =
-            spec.groups.iter().find(|g| g.0 == name).map(|g| (g.1, g.2)).unwrap_or(("emblem-system-symbolic", ""));
+        let (icon, summary) = spec
+            .groups
+            .iter()
+            .chain(STANDARD_GROUPS.iter().filter(|_| spec.standard.is_some()))
+            .find(|g| g.0 == name)
+            .map(|g| (g.1, g.2))
+            .unwrap_or(("emblem-system-symbolic", ""));
         let button = gtk::Button::new();
         button.add_css_class("dialog-nav");
         let content = gtk::Box::new(gtk::Orientation::Horizontal, 14);
@@ -371,4 +423,123 @@ fn text_of(w: &gtk::Widget) -> String {
         child = c.next_sibling();
     }
     out
+}
+
+// ----- The standard groups -----
+
+/// A group as the apps build theirs: a box named after it, its heading (shown in
+/// search results) and the list its rows join.
+fn group(body: &gtk::Box, title: &str) -> gtk::Box {
+    let wrapper = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    wrapper.add_css_class("settings-group");
+    wrapper.set_widget_name(title);
+    let heading = gtk::Label::new(Some(&title.to_uppercase()));
+    heading.add_css_class("group-title");
+    heading.set_xalign(0.0);
+    wrapper.append(&heading);
+    let list = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    list.add_css_class("group-list");
+    wrapper.append(&list);
+    body.append(&wrapper);
+    list
+}
+
+/// Appearance, Keyboard and About, after the app's own groups.
+fn append_standard(body: &gtk::Box, standard: &Standard) {
+    appearance(&group(body, "Appearance"), standard);
+    keyboard(&group(body, "Keyboard"), standard.shortcuts);
+    about(&group(body, "About"), &standard.about);
+}
+
+/// Follow Omarchy, Theme, Accent, Reduce motion and Open on.
+fn appearance(list: &gtk::Box, standard: &Standard) {
+    let prefs = nyx_theme::app_prefs();
+    let chooses = nyx_theme::can_choose_theme();
+    let themes: Vec<(String, String)> = nyx_theme::all().iter().map(|t| (t.id.clone(), t.name.clone())).collect();
+    let (theme_row, theme_dd) = widgets::choice_row(
+        "Theme",
+        "A bundled theme, or one of your own.",
+        themes,
+        &prefs.theme,
+        |id| nyx_theme::choose_theme(nyx_theme::ThemeMode::Theme, &id),
+    );
+    let following = prefs.mode == nyx_theme::ThemeMode::Omarchy;
+    theme_dd.set_sensitive(chooses && (!following || !nyx_theme::omarchy_available()));
+    if nyx_theme::omarchy_available() {
+        let dd = theme_dd.clone();
+        let (row, switch) = widgets::switch_row(
+            "Follow Omarchy theme",
+            "Match the desktop's colors and update when the Omarchy theme changes.",
+            following,
+            move |on| {
+                let current = nyx_theme::app_prefs().theme;
+                let mode = if on { nyx_theme::ThemeMode::Omarchy } else { nyx_theme::ThemeMode::Theme };
+                nyx_theme::choose_theme(mode, &current);
+                dd.set_sensitive(!on);
+            },
+        );
+        switch.set_sensitive(chooses);
+        list.append(&row);
+    }
+    list.append(&theme_row);
+    list.append(&widgets::accent_row(standard.app));
+    let set = standard.set_reduce_motion;
+    let (row, _) =
+        widgets::switch_row("Reduce motion", "Turn off transitions in this window.", (standard.reduce_motion)(), move |on| {
+            set(on);
+            nyx_theme::apply();
+        });
+    list.append(&row);
+    list.append(&widgets::start_row());
+}
+
+/// Every shortcut, with its keys.
+fn keyboard(list: &gtk::Box, shortcuts: &[(&[&str], &str)]) {
+    for (keys, what) in shortcuts {
+        list.append(&widgets::row(what, "", Some(widgets::key_caps(keys).upcast_ref())));
+    }
+}
+
+/// The app's icon, name, version and what it does; its licence, links and credits.
+fn about(list: &gtk::Box, about: &About) {
+    let head = gtk::Box::new(gtk::Orientation::Horizontal, 16);
+    head.add_css_class("settings-option");
+    head.add_css_class("about-head");
+    let icon = gtk::Image::from_icon_name(about.icon);
+    icon.set_pixel_size(64);
+    head.append(&icon);
+    let text = gtk::Box::new(gtk::Orientation::Vertical, 3);
+    text.set_valign(gtk::Align::Center);
+    let name = widgets::label(about.name, "about-name");
+    name.set_xalign(0.0);
+    text.append(&name);
+    let version = widgets::label(&format!("Version {}", about.version), "about-version");
+    version.set_xalign(0.0);
+    version.set_selectable(true);
+    text.append(&version);
+    let desc = widgets::label(about.description, "settings-option-description");
+    desc.set_xalign(0.0);
+    desc.set_wrap(true);
+    text.append(&desc);
+    head.append(&text);
+    list.append(&head);
+    list.append(&widgets::row("Licence", about.licence, None));
+    for (title, desc, url, icon) in [
+        ("Project page", "The source, releases and documentation.", about.website, "web-browser-symbolic"),
+        ("Report a problem", "Open an issue on the project page.", about.issues, "mail-message-new-symbolic"),
+    ] {
+        if url.is_empty() {
+            continue;
+        }
+        let open = widgets::bar_button(icon, &format!("Open {url}"));
+        let url = url.to_string();
+        open.connect_clicked(move |b| {
+            let window = b.root().and_downcast::<gtk::Window>();
+            gtk::UriLauncher::new(&url).launch(window.as_ref(), gtk::gio::Cancellable::NONE, |_| {});
+        });
+        list.append(&widgets::row(title, desc, Some(open.upcast_ref())));
+    }
+    for (name, what) in about.credits {
+        list.append(&widgets::row(name, what, None));
+    }
 }

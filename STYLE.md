@@ -265,6 +265,18 @@ at the right; focus shows an accent outline.
 **Chip / tag:** 24 px chip with `field` fill; accent chips for tags (`#design`).
 Tags for row status ("Restart", "5 available") are 11 px, 600, accent or warning tint.
 
+**Settings card:** settings open as a card over the window (`nyx_ui::settings_card`,
+<kbd>Ctrl</kbd>+<kbd>,</kbd>): the groups listed on the left with an icon and a summary,
+the chosen group on the right, a search across all of them. The app's own groups come
+first, then three every app ends with, built by the card from the app's `Standard`:
+- **Appearance** — Follow Omarchy, Theme, Accent, Reduce motion, Open on.
+- **Keyboard** — every shortcut, with its keys.
+- **About** — the app's icon (64 px), name (600), version, one line on what it does,
+  licence, Project page and Report a problem buttons, credits.
+
+An app never repeats these in its own groups; options that only its window has go in a
+group named for what they're about (Editor, Playback), not "This window".
+
 **Popover, dialog, preview window:** `@theme_popover`, `radius_dialog`, a soft shadow.
 Dialogs keep their text confirm/cancel pair, safe choice first.
 
