@@ -23,6 +23,7 @@ window.playback-window button.play-button:active {
   background: mix(@theme_bg, @theme_accent, 0.32);
 }
 
+
 window.playback-window scale.seek,
 window.playback-window scale.volume {
   padding: 6px 0;
@@ -62,34 +63,66 @@ window.playback-window scale.seek > marks > mark > indicator {
   background: @theme_video;
 }
 
+/* The controls sit on soft gradients across the picture's top and bottom edges,
+   never on cards: the title above, the seek bar and buttons below, all in the
+   video's light colour. Full screen gives them more room. */
 .osd-top {
-  margin: 16px;
-  padding: 10px 14px;
-  border-radius: 9px;
-  background: alpha(@theme_surface, 0.86);
-  border: 1px solid @hairline;
-  box-shadow: 0 4px 16px alpha(@theme_shadow, 0.5);
+  margin: 0;
+  padding: 16px 20px 48px;
+  background-image: linear-gradient(to bottom, alpha(@theme_video, 0.8), alpha(@theme_video, 0));
   transition: opacity 200ms ease-out;
 }
 
 .osd-title {
-  font-weight: 800;
-  font-size: 1.1em;
+  font-weight: 600;
+  font-size: 15px;
+  color: @theme_on_video;
 }
 
 .osd-subtitle {
-  font-size: 0.88em;
-  color: @theme_dim_text;
+  font-size: 12.5px;
+  color: alpha(@theme_on_video, 0.72);
 }
 
 .osd-controls {
-  margin: 16px;
-  padding: 8px 14px 10px;
-  border-radius: 9px;
-  background: alpha(@theme_surface, 0.9);
-  border: 1px solid @hairline;
-  box-shadow: 0 4px 16px alpha(@theme_shadow, 0.5), 0 0 28px alpha(@theme_glow, 0.08);
+  margin: 0;
+  padding: 56px 16px 12px;
+  background-image: linear-gradient(to top, alpha(@theme_video, 0.9), alpha(@theme_video, 0.55) 55%, alpha(@theme_video, 0));
   transition: opacity 200ms ease-out;
+}
+
+.osd-controls .time-readout {
+  color: alpha(@theme_on_video, 0.8);
+  font-feature-settings: "tnum";
+}
+
+window.playback-window .osd-controls button.osd-button,
+window.playback-window .osd-controls menubutton.osd-button > button {
+  color: alpha(@theme_on_video, 0.88);
+}
+
+window.playback-window .osd-controls button.osd-button:hover,
+window.playback-window .osd-controls menubutton.osd-button > button:hover {
+  color: @theme_on_video;
+  background: alpha(@theme_on_video, 0.14);
+}
+
+window.playback-window .osd-controls scale > trough {
+  min-height: 4px;
+  border-radius: 2px;
+  background: alpha(@theme_on_video, 0.25);
+}
+
+window.playback-window .osd-controls scale.seek > trough > highlight {
+  min-height: 4px;
+  border-radius: 2px;
+  background: @theme_accent;
+}
+
+window.playback-window .osd-controls scale.volume > trough > highlight {
+  min-height: 4px;
+  border-radius: 2px;
+  background: @theme_on_video;
 }
 
 .osd-top.idle,
@@ -129,25 +162,14 @@ window.playback-window menubutton.osd-button.dim > button {
 .osd-flash {
   margin-top: 90px;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1.1em;
-  font-weight: 700;
+  font-weight: 600;
   background: alpha(@theme_surface, 0.9);
-  border: 1px solid @hairline;
-  box-shadow: 0 4px 16px alpha(@theme_shadow, 0.5), 0 0 14px alpha(@theme_glow, 0.14);
+  box-shadow: 0 4px 16px alpha(@theme_shadow, 0.5);
 }
 
-/* Fullscreen: the controls sit on soft gradients across the picture's
-   edges instead of cards, covering less of it. */
-
-window.fullscreen .osd-top,
-window.fullscreen .osd-controls {
-  margin: 0;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  background-color: transparent;
-}
+/* Full screen: the same gradients with more room. */
 
 window.fullscreen .osd-top {
   padding: 28px 44px 64px;
@@ -215,3 +237,20 @@ window.playback-window button.menu-item:hover {
   background: alpha(@theme_accent, 0.18);
 }
 
+/* Over the picture, Play is a light round button with the glyph in the video's
+   dark, the one solid control there (after the controls' colours, which it
+   overrides). */
+window.playback-window .osd-controls button.play-button,
+window.playback-window .osd-controls button.osd-button.play-button {
+  min-width: 40px;
+  min-height: 40px;
+  margin: 0 4px;
+  background: @theme_on_video;
+  color: @theme_video;
+}
+
+window.playback-window .osd-controls button.play-button:hover,
+window.playback-window .osd-controls button.osd-button.play-button:hover {
+  background: alpha(@theme_on_video, 0.86);
+  color: @theme_video;
+}
