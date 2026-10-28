@@ -548,3 +548,13 @@ window.@APP@ button.dialog-nav.active {
 .accent-swatch.selected {
   box-shadow: 0 0 0 2px @theme_bg, 0 0 0 4px @theme_text;
 }
+
+/* ---------- Inspector ---------- */
+
+/* Docked, the inspector is part of the one surface: no panel colour, no edge.
+ * Floating over narrow windows it keeps its card. */
+.inspector:not(.floating) {
+  background: @theme_bg;
+  border-left: none;
+  box-shadow: none;
+}
