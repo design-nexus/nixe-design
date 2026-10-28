@@ -171,6 +171,16 @@ window.@APP@ .search-strip entry:focus-within {
   box-shadow: none;
 }
 
+/* In the header the search is a 32 px field with room above and below it, not a
+ * band the header's full height. */
+window.@APP@ .app-header entry.bar-search {
+  min-height: 32px;
+  margin-top: 7px;
+  margin-bottom: 7px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
 .search-strip {
   background: @theme_bg;
   border-bottom: none;
