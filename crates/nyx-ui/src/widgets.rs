@@ -532,7 +532,12 @@ pub fn accent_row(app: &'static str) -> gtk::Box {
         }
     };
     refresh();
-    let row = row("Accent", "This app's colour for selection and highlights.", Some(strip.upcast_ref()));
+    // The swatches go under the text: beside it they leave the description a word wide.
+    let row = row("Accent", "This app's colour for selection and highlights.", None);
+    row.set_orientation(gtk::Orientation::Vertical);
+    row.set_spacing(10);
+    strip.set_halign(gtk::Align::Start);
+    row.append(&strip);
     nyx_theme::subscribe(&row, refresh);
     row
 }
