@@ -24,6 +24,18 @@ window.@APP@ dialog {
   font-size: 1.0em;
 }
 
+/* Apps set an empty box as the titlebar (Hyprland manages the window, and the app
+ * draws its own header). Without this the GTK theme gives that box a titlebar's
+ * height: a blank band above the header on every real window. */
+window.@APP@ > .titlebar {
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
 .mono,
 .value-readout {
   font-family: "JetBrains Mono", "JetBrainsMono Nerd Font", monospace;
