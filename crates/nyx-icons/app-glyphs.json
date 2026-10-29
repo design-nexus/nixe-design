@@ -1,0 +1,261 @@
+{
+  "Files": {
+    "light": "#86baff",
+    "mid": "#4b8ef5",
+    "back": "M30 46a8 8 0 0 1 8-8h17a6 6 0 0 1 4.2 1.8L64 44h26a8 8 0 0 1 8 8v4H30z",
+    "front": "M30 58a6 6 0 0 1 6-6h56a6 6 0 0 1 6 6v28a8 8 0 0 1-8 8H38a8 8 0 0 1-8-8z",
+    "detail": "M54 72h20"
+  },
+  "Notes": {
+    "light": "#ffd27a",
+    "mid": "#f0a83a",
+    "back": "M52 28h36a6 6 0 0 1 6 6v52a6 6 0 0 1-6 6H52a6 6 0 0 1-6-6V34a6 6 0 0 1 6-6z",
+    "front": "M40 38h38a6 6 0 0 1 6 6v52a6 6 0 0 1-6 6H40a6 6 0 0 1-6-6V44a6 6 0 0 1 6-6z",
+    "detail": "M46 56h26M46 68h26M46 80h16"
+  },
+  "Settings": {
+    "light": "#a7b1c7",
+    "mid": "#8590a8",
+    "back": "M33 45h62a3 3 0 0 1 0 6H33a3 3 0 0 1 0-6zM33 61h62a3 3 0 0 1 0 6H33a3 3 0 0 1 0-6zM33 77h62a3 3 0 0 1 0 6H33a3 3 0 0 1 0-6z",
+    "front": "M49 48a9 9 0 1 0 18 0a9 9 0 1 0-18 0zM71 64a9 9 0 1 0 18 0a9 9 0 1 0-18 0zM39 80a9 9 0 1 0 18 0a9 9 0 1 0-18 0z",
+    "detail": ""
+  },
+  "Photos": {
+    "light": "#ffa184",
+    "mid": "#fb6f4a",
+    "back": "M50 28h40a6 6 0 0 1 6 6v38a6 6 0 0 1-6 6H50a6 6 0 0 1-6-6V34a6 6 0 0 1 6-6z",
+    "front": "M38 42h44a6 6 0 0 1 6 6v44a6 6 0 0 1-6 6H38a6 6 0 0 1-6-6V48a6 6 0 0 1 6-6z",
+    "detail": "M40 88l13-13 9 9 7-7 11 11M68 56h.01"
+  },
+  "Mail": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M42 30h44a4 4 0 0 1 4 4v24H38V34a4 4 0 0 1 4-4z",
+    "front": "M30 48a6 6 0 0 1 6-6h56a6 6 0 0 1 6 6v36a6 6 0 0 1-6 6H36a6 6 0 0 1-6-6z",
+    "detail": "M34 48l30 21 30-21"
+  },
+  "Music": {
+    "light": "#ff97c6",
+    "mid": "#fa5d9f",
+    "back": "M30 64a34 34 0 1 0 68 0a34 34 0 1 0-68 0z",
+    "front": "M68 36h6v46h-6zM74 36q16 4 16 20q-5-9-16-9zM50 82a12 10 0 1 0 24 0a12 10 0 1 0-24 0z",
+    "detail": ""
+  },
+  "Home": {
+    "light": "#79e6ad",
+    "mid": "#3cc57f",
+    "back": "M64 26l42 32-5 6-37-28-37 28-5-6z",
+    "front": "M64 40l30 23v29a6 6 0 0 1-6 6H40a6 6 0 0 1-6-6V63z",
+    "detail": "M57 98V80h14v18"
+  },
+  "Activity": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M26 48H102V84H26Z",
+    "front": "M28 66H44L54 40L68 88L78 58L84 66H100",
+    "detail": ""
+  },
+  "Archive": {
+    "light": "#ffd27a",
+    "mid": "#f0a83a",
+    "back": "M34 44H94V98H34Z",
+    "front": "M28 30H100V50H28Z M38 50H90V94H38Z",
+    "detail": "M64 38v10m0 8v8m0 8v8m-5 7h10"
+  },
+  "Calculator": {
+    "light": "#ffd27a",
+    "mid": "#f0a83a",
+    "back": "M46 26H94V96H46Z",
+    "front": "M34 32H86V102H34Z",
+    "detail": "M44 44h32v14H44z M46 72h4m16 0h4m-24 16h4m16 0h4"
+  },
+  "Calendar": {
+    "light": "#ff9a9e",
+    "mid": "#ee5864",
+    "back": "M38 28H94V88H38Z",
+    "front": "M30 38H90V100H30Z",
+    "detail": "M30 56h60M46 32v14m28-14v14M44 70h5m12 0h5m12 0h1M44 84h5m12 0h5"
+  },
+  "Capture": {
+    "light": "#ffa184",
+    "mid": "#fb6f4a",
+    "back": "M40 28H100V80H40Z",
+    "front": "M30 40H90V92H30Z",
+    "detail": "M40 52h40v28H40zM26 34v-8h10m56 68h10v-10"
+  },
+  "Chat": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M44 28H100V76H84L72 88V76H44Z",
+    "front": "M28 40H88V88H48L34 100V88H28Z",
+    "detail": "M44 62h.01m14 0h.01m14 0h.01"
+  },
+  "Contacts": {
+    "light": "#86baff",
+    "mid": "#4b8ef5",
+    "back": "M46 26H96V94H46Z",
+    "front": "M34 34H86V102H34Z",
+    "detail": "M58 64a10 10 0 1 0 0-20a10 10 0 1 0 0 20M44 86q14-24 28 0M28 48h12m-12 20h12m-12 20h12"
+  },
+  "Containers": {
+    "light": "#7ee2ee",
+    "mid": "#35afc9",
+    "back": "M64 24L104 46V86L64 108L24 86V46Z",
+    "front": "M64 38L92 54V82L64 98L36 82V54Z",
+    "detail": "M36 54l28 16 28-16M64 70v28"
+  },
+  "Fonts": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M24 34H76V94H24Z",
+    "front": "M30 92L50 34H62L82 92H68L64 78H46L42 92Z M84 64H100V92H84Z",
+    "detail": "M50 66h10"
+  },
+  "Git": {
+    "light": "#ffa184",
+    "mid": "#fb6f4a",
+    "back": "M42 28H56V98H42Z M78 30H92V66H78Z",
+    "front": "M34 40a14 14 0 1 0 28 0a14 14 0 1 0-28 0 M34 90a14 14 0 1 0 28 0a14 14 0 1 0-28 0 M72 40a14 14 0 1 0 28 0a14 14 0 1 0-28 0",
+    "detail": "M50 70q36 0 36-18"
+  },
+  "Glimpse": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M24 58Q64 8 104 58Q64 108 24 58Z",
+    "front": "M38 58a26 26 0 1 0 52 0a26 26 0 1 0-52 0 M82 80L104 102L96 110L74 88Z",
+    "detail": "M54 58a10 10 0 1 0 20 0a10 10 0 1 0-20 0"
+  },
+  "Maps": {
+    "light": "#86baff",
+    "mid": "#4b8ef5",
+    "back": "M24 38L52 28L78 38L104 28V94L78 104L52 94L24 104Z",
+    "front": "M52 28L78 38V104L52 94Z M54 48a16 16 0 1 1 32 0Q86 62 70 80Q54 62 54 48Z",
+    "detail": "M70 44v.01"
+  },
+  "MediaPlayer": {
+    "light": "#86baff",
+    "mid": "#4b8ef5",
+    "back": "M40 28H100V82H40Z",
+    "front": "M28 40H92V96H28Z",
+    "detail": "M54 54l22 14-22 14z"
+  },
+  "News": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M44 28H100V90H44Z",
+    "front": "M28 38H88V100H28Z",
+    "detail": "M40 50h36M40 62h12v16H40zM62 62h14m-14 12h14M40 88h36"
+  },
+  "Notepad": {
+    "light": "#ffd27a",
+    "mid": "#f0a83a",
+    "back": "M44 26H94V92H44Z",
+    "front": "M32 36H82V102H32Z M72 84L94 62L104 72L82 94L68 98Z",
+    "detail": "M44 52h26M44 64h22M44 76h12"
+  },
+  "Office": {
+    "light": "#ffd27a",
+    "mid": "#f0a83a",
+    "back": "M48 24H100V88H48Z",
+    "front": "M30 38H82V104H30Z",
+    "detail": "M44 54h24M44 68h24M44 82h16"
+  },
+  "Passwords": {
+    "light": "#79e6ad",
+    "mid": "#3cc57f",
+    "back": "M42 54V44A22 22 0 0 1 86 44V64H76V44A12 12 0 0 0 52 44V64H42Z",
+    "front": "M32 54H96V100H32Z",
+    "detail": "M64 70v14"
+  },
+  "Pdf": {
+    "light": "#ff9a9e",
+    "mid": "#ee5864",
+    "back": "M48 24H82L100 42V90H48Z",
+    "front": "M30 34H66L86 54V104H30Z",
+    "detail": "M64 36v20h20M42 72h30M42 86h22"
+  },
+  "PhotoViewer": {
+    "light": "#ffa184",
+    "mid": "#fb6f4a",
+    "back": "M26 34H46V40H32V54H26Z M82 34H102V54H96V40H82Z M26 74H32V88H46V94H26Z M96 74H102V94H82V88H96Z",
+    "front": "M38 46H90V82H38Z",
+    "detail": "M44 76l12-16 10 10 8-8 10 14M76 54h.01"
+  },
+  "Present": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M40 24H102V74H40Z",
+    "front": "M26 34H90V84H26Z M52 84H64L78 104H64L58 94L52 104H38Z",
+    "detail": "M38 68l12-14 12 6 14-14"
+  },
+  "Pulse": {
+    "light": "#7ee2ee",
+    "mid": "#35afc9",
+    "back": "M24 60L106 26L78 108L58 78Z",
+    "front": "M30 58L98 32L62 76Z M62 76L78 98L98 32Z",
+    "detail": "M62 76l36-44"
+  },
+  "Reminders": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M46 26H98V92H46Z",
+    "front": "M30 36H84V102H30Z",
+    "detail": "M40 54l5 5 9-12M62 54h12M42 74h7m13 0h12M42 90h7m13 0h12"
+  },
+  "Sheets": {
+    "light": "#79e6ad",
+    "mid": "#3cc57f",
+    "back": "M44 26H100V90H44Z",
+    "front": "M28 38H86V102H28Z",
+    "detail": "M28 58h58M28 78h58M48 38v64M68 38v64"
+  },
+  "Store": {
+    "light": "#79e6ad",
+    "mid": "#3cc57f",
+    "back": "M44 46V36A20 20 0 0 1 84 36V56H74V36A10 10 0 0 0 54 36V56H44Z",
+    "front": "M32 46H96L102 102H26Z",
+    "detail": "M52 72h24M64 60v24"
+  },
+  "Theater": {
+    "light": "#ff97c6",
+    "mid": "#fa5d9f",
+    "back": "M40 24H102V70H40Z",
+    "front": "M26 34H90V78H26Z M30 90H52V104H30Z M76 90H98V104H76Z",
+    "detail": "M50 44l22 12-22 12z"
+  },
+  "Torrents": {
+    "light": "#79e6ad",
+    "mid": "#3cc57f",
+    "back": "M28 72H100V102H28Z",
+    "front": "M56 26H72V62H92L64 90L36 62H56Z",
+    "detail": "M36 94h56"
+  },
+  "Transfer": {
+    "light": "#7ee2ee",
+    "mid": "#35afc9",
+    "back": "M28 72H100V86H28Z M28 42H100V56H28Z",
+    "front": "M28 42H78V28L104 49L78 70V56H28Z M100 72H50V58L24 79L50 100V86H100Z",
+    "detail": ""
+  },
+  "Weather": {
+    "light": "#7ee2ee",
+    "mid": "#35afc9",
+    "back": "M34 48a20 20 0 1 0 40 0a20 20 0 1 0-40 0",
+    "front": "M30 66Q30 48 50 48Q62 26 80 50Q104 46 104 68Q104 84 86 84H46Q30 84 30 66Z",
+    "detail": "M46 94l-4 8m22-8l-4 8m22-8l-4 8"
+  },
+  "Write": {
+    "light": "#86baff",
+    "mid": "#4b8ef5",
+    "back": "M48 26H98V90H48Z",
+    "front": "M30 36H82V102H30Z",
+    "detail": "M42 52h28M42 66h28M42 80h20"
+  },
+  "Tasks": {
+    "light": "#bba6ff",
+    "mid": "#8f6bff",
+    "back": "M26 48H102V84H26Z",
+    "front": "M28 66H44L54 40L68 88L78 58L84 66H100",
+    "detail": ""
+  }
+}

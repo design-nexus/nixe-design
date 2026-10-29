@@ -19,7 +19,7 @@ def normalize(info):
     return info
 with output.open('wb') as raw, gzip.GzipFile(filename='', fileobj=raw, mode='wb', mtime=0) as compressed:
     with tarfile.open(fileobj=compressed, mode='w') as archive:
-        for name in ['STYLE.md', 'LICENSE', 'crates/nyx-icons/apps', 'crates/nyx-icons/make_icons.py',
+        for name in ['STYLE.md', 'LICENSE', 'crates/nyx-icons/apps', 'crates/nyx-icons/make_icons.py', 'crates/nyx-icons/app-glyphs.json',
                      'crates/nyx-theme/src', 'crates/nyx-theme/themes', 'crates/nyx-ui/src', 'crates/nyx-playback/data',
                      'crates/nyx-playback/src/controls.css']:
             archive.add(root / name, arcname=name, filter=normalize)
