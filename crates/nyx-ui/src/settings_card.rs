@@ -451,9 +451,25 @@ fn group(body: &gtk::Box, title: &str) -> gtk::Box {
 
 /// Appearance, Keyboard and About, after the app's own groups.
 fn append_standard(body: &gtk::Box, standard: &Standard) {
-    appearance(&group(body, "Appearance"), standard);
-    keyboard(&group(body, "Keyboard"), standard.shortcuts);
-    about(&group(body, "About"), &standard.about);
+    for (name, _, _) in STANDARD_GROUPS {
+        standard_group(body, name, standard);
+    }
+}
+
+/// One of the standard groups (`"Appearance"`, `"Keyboard"` or `"About"`), for an
+/// app whose settings aren't this card but should hold the same groups.
+pub fn standard_group(body: &gtk::Box, name: &str, standard: &Standard) {
+    match name {
+        "Appearance" => appearance(&group(body, name), standard),
+        "Keyboard" => keyboard(&group(body, name), standard.shortcuts),
+        "About" => about(&group(body, name), &standard.about),
+        _ => {}
+    }
+}
+
+/// The standard groups' names, icons and summaries, in order.
+pub fn standard_groups() -> &'static [(&'static str, &'static str, &'static str)] {
+    STANDARD_GROUPS
 }
 
 /// Follow Omarchy, Theme, Accent, Reduce motion and Open on.
