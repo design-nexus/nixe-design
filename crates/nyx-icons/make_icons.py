@@ -4,6 +4,7 @@ Files, Notes, Settings, Photos, Mail, Music and Home come from Claude's
 Nyx Design 2.0 Icons board. Companion glyphs follow the same satin tile,
 app accent and layered geometric treatment. Run this file to regenerate all assets.
 """
+import base64
 import json
 import pathlib
 from xml.sax.saxutils import escape
@@ -23,6 +24,21 @@ TEMPLATE = '''<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" v
 </svg>
 '''
 
+def render_glyph(glyph):
+    """Render a curated glyph using the canonical Nyx tile."""
+    return TEMPLATE.format(**{key: escape(value, {chr(34): "&quot;"})
+                              for key, value in glyph.items()})
+
+
+def render_logo(png, light="#a7b1c7", mid="#8590a8"):
+    """Embed a rasterized original logo without recoloring third-party artwork."""
+    svg = render_glyph(dict(light=light, mid=mid, back="", front="", detail=""))
+    logo = base64.b64encode(png).decode("ascii")
+    return svg.replace("</svg>", '<image x="28" y="28" width="72" height="72" '
+                       'preserveAspectRatio="xMidYMid meet" href="data:image/png;base64,'
+                       + logo + '"/></svg>')
+
+
 def main():
     base = pathlib.Path(__file__).resolve().parent
     out = base / "apps"
@@ -30,7 +46,7 @@ def main():
     icons = json.loads((base / "app-glyphs.json").read_text())
     for name, glyph in icons.items():
         (out / f"io.github.design_nexus.nyx.{name}.svg").write_text(
-            TEMPLATE.format(**{key: escape(value, {chr(34): "&quot;"}) for key, value in glyph.items()}))
+            render_glyph(glyph))
     print(f"{len(icons)} Nyx 2.0 icons in {out}")
 
 if __name__ == "__main__":

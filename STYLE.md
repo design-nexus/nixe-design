@@ -323,7 +323,9 @@ noted in its shortcuts list.
 - **Symbolic icons:** 24 px grid, 1.6 px round-capped strokes, `currentColor`; the header
   icon is the app's symbolic at 20 px in the app accent.
 - Freedesktop icon-theme layout, falling back to the user's icon theme; third-party logos
-  are never recoloured.
+  are never recoloured. The opt-in `nyx icons` launcher set may use curated
+  geometric interpretations of recognized third-party marks; fallback logos retain
+  their original colors on the canonical tile.
 
 ---
 
