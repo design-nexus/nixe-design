@@ -320,12 +320,18 @@ noted in its shortcuts list.
   gradient (`#26262a` → `#121214`) with a faint accent glow at the top-left and an accent
   hairline at 0.3. One layered geometric glyph in the app's accent (a light-to-mid
   gradient over a 35% back layer). Must read at 24 px.
+- **Following the theme:** that is the Nyx Dark look, and the shipped files use it.
+  Installed icons follow the active theme (`nyx icons sync`): the tile comes from the
+  theme's background (a light satin on light themes), and the glyph takes the swatch
+  picked in the app's Accent row, else the theme's accent for the app, else the theme's
+  version of the glyph's own swatch. Accents that are Nyx Dark swatches use the
+  hand-tuned glyph pairs; others are derived (`make_icons.glyph_colors`).
 - **Symbolic icons:** 24 px grid, 1.6 px round-capped strokes, `currentColor`; the header
   icon is the app's symbolic at 20 px in the app accent.
 - Freedesktop icon-theme layout, falling back to the user's icon theme; third-party logos
   are never recoloured. The opt-in `nyx icons` launcher set may use curated
-  geometric interpretations of recognized third-party marks; fallback logos retain
-  their original colors on the canonical tile.
+  geometric interpretations of recognized third-party marks, in the theme's nearest
+  swatch; fallback logos retain their original colors on the theme's tile.
 
 ---
 
